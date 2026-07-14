@@ -1,0 +1,82 @@
+import AppKit
+import SwiftUI
+
+struct StatusPanelView: View {
+    @Bindable var model: CodexStatusModel
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(spacing: 12) {
+                StatusLightView(state: model.state, size: 30)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(model.state.title).font(.headline)
+                    Text(model.state.detail).font(.caption).foregroundStyle(.secondary)
+                }
+                Spacer()
+            }
+
+            Divider()
+            sessionDetails
+            Divider()
+
+            Button(model.hasCodexDirectoryAccess ? "重新授权 Codex 文件夹…" : "选择 Codex 文件夹…") {
+                model.chooseCodexDirectory()
+            }
+
+            Picker("显示位置", selection: $model.displayMode) {
+                ForEach(DisplayMode.allCases) { mode in
+                    Text(mode.title).tag(mode)
+                }
+            }
+            Button("打开位置选择器…") { model.showPositionChooser() }
+            Toggle("登录时启动", isOn: Binding(
+                get: { model.launchAtLoginEnabled },
+                set: { model.setLaunchAtLogin($0) }
+            ))
+
+            HStack {
+                Button("打开 Codex") { model.openCodex() }
+                Button("打开任务目录") { model.openWorkingDirectory() }
+                    .disabled(model.snapshot?.workingDirectory.isEmpty ?? true)
+                Spacer()
+                Button("退出") { NSApplication.shared.terminate(nil) }
+            }
+        }
+        .padding(16)
+        .frame(width: 370)
+    }
+
+    @ViewBuilder
+    private var sessionDetails: some View {
+        if let snapshot = model.snapshot {
+            Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 7) {
+                detailRow("任务", snapshot.title)
+                detailRow("目录", snapshot.workingDirectory.isEmpty ? "未知" : snapshot.workingDirectory)
+                detailRow("持续", snapshot.startedAt.formattedDuration(to: Date()))
+                detailRow("最后活动", snapshot.lastActivityAt.formatted(date: .omitted, time: .standard))
+            }
+        } else {
+            Text("还没有发现本地 Codex 会话。")
+                .font(.callout)
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    private func detailRow(_ label: String, _ value: String) -> some View {
+        GridRow {
+            Text(label).foregroundStyle(.secondary)
+            Text(value).lineLimit(2).truncationMode(.middle).textSelection(.enabled)
+        }
+        .font(.callout)
+    }
+}
+
+private extension Date {
+    func formattedDuration(to end: Date) -> String {
+        let seconds = max(0, Int(end.timeIntervalSince(self)))
+        let hours = seconds / 3600
+        let minutes = (seconds % 3600) / 60
+        if hours > 0 { return "\(hours)小时 \(minutes)分钟" }
+        return "\(minutes)分钟"
+    }
+}

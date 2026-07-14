@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#18262b"/>
+      <stop offset="1" stop-color="#0b1114"/>
+    </linearGradient>
+    <linearGradient id="panel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#31464d"/>
+      <stop offset="1" stop-color="#223136"/>
+    </linearGradient>
+    <radialGradient id="glowRed" cx="50%" cy="50%" r="60%">
+      <stop offset="0" stop-color="#ff8a80" stop-opacity="1"/>
+      <stop offset="1" stop-color="#ff3d33" stop-opacity="1"/>
+    </radialGradient>
+    <radialGradient id="glowYellow" cx="50%" cy="50%" r="60%">
+      <stop offset="0" stop-color="#ffe996" stop-opacity="1"/>
+      <stop offset="1" stop-color="#ffc714" stop-opacity="1"/>
+    </radialGradient>
+    <radialGradient id="glowGreen" cx="50%" cy="50%" r="60%">
+      <stop offset="0" stop-color="#9af0b8" stop-opacity="1"/>
+      <stop offset="1" stop-color="#33d159" stop-opacity="1"/>
+    </radialGradient>
+    <filter id="shadow" x="-40%" y="-40%" width="180%" height="180%">
+      <feDropShadow dx="0" dy="24" stdDeviation="28" flood-color="#000000" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+  <rect x="64" y="64" width="896" height="896" rx="208" fill="url(#bg)"/>
+  <rect x="152" y="332" width="720" height="360" rx="180" fill="url(#panel)" filter="url(#shadow)"/>
+  <circle cx="312" cy="512" r="92" fill="url(#glowRed)"/>
+  <circle cx="512" cy="512" r="92" fill="url(#glowYellow)"/>
+  <circle cx="712" cy="512" r="92" fill="url(#glowGreen)"/>
+</svg>

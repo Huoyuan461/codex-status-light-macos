@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1b2a31"/>
+      <stop offset="1" stop-color="#0f161a"/>
+    </linearGradient>
+    <linearGradient id="panel" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#172126"/>
+      <stop offset="1" stop-color="#0c1114"/>
+    </linearGradient>
+    <linearGradient id="window" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f8fafb"/>
+      <stop offset="1" stop-color="#eef2f5"/>
+    </linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="18" stdDeviation="24" flood-color="#000" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+  <rect width="1440" height="900" fill="url(#bg)"/>
+  <rect x="0" y="0" width="1440" height="30" fill="#e8edf1" opacity="0.96"/>
+  <circle cx="78" cy="15" r="5" fill="#1a1a1a" opacity="0.65"/>
+  <circle cx="1095" cy="14" r="6" fill="#ff3d33"/>
+  <circle cx="1120" cy="14" r="6" fill="#ffc714"/>
+  <circle cx="1145" cy="14" r="6" fill="#33d159"/>
+  <rect x="160" y="116" width="520" height="460" rx="28" fill="url(#window)" filter="url(#shadow)"/>
+  <rect x="160" y="116" width="520" height="58" rx="28" fill="#ffffff"/>
+  <circle cx="190" cy="145" r="11" fill="#ff5f57"/>
+  <circle cx="218" cy="145" r="11" fill="#febc2e"/>
+  <circle cx="246" cy="145" r="11" fill="#28c840"/>
+  <text x="420" y="152" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif" font-size="18" font-weight="700" fill="#101214" text-anchor="middle">Codex Status Light</text>
+  <rect x="194" y="202" width="452" height="72" rx="18" fill="#f3f6f8"/>
+  <rect x="194" y="288" width="452" height="72" rx="18" fill="#f3f6f8"/>
+  <rect x="194" y="374" width="452" height="72" rx="18" fill="#f3f6f8"/>
+  <g transform="translate(222 239)">
+    <circle cx="0" cy="0" r="14" fill="#ff3d33"/>
+    <circle cx="48" cy="0" r="14" fill="#ffc714" opacity="0.35"/>
+    <circle cx="96" cy="0" r="14" fill="#33d159" opacity="0.35"/>
+  </g>
+  <text x="266" y="233" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif" font-size="18" font-weight="700" fill="#101214">当前状态</text>
+  <text x="266" y="256" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif" font-size="14" fill="#66707a">红灯表示连接中断，黄灯表示正在运行，绿灯表示已完成。</text>
+  <rect x="194" y="462" width="452" height="88" rx="18" fill="#ffffff" stroke="#e0e6ea"/>
+  <text x="226" y="498" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif" font-size="16" font-weight="700" fill="#101214">菜单栏入口</text>
+  <text x="226" y="524" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif" font-size="13" fill="#66707a">点击右上角红绿灯即可展开状态面板。</text>
+  <g transform="translate(1138 82)">
+    <rect x="0" y="0" width="162" height="44" rx="22" fill="#203038" filter="url(#shadow)"/>
+    <circle cx="38" cy="22" r="10" fill="#ff3d33" opacity="0.95"/>
+    <circle cx="72" cy="22" r="10" fill="#ffc714" opacity="0.95"/>
+    <circle cx="106" cy="22" r="10" fill="#33d159" opacity="0.95"/>
+  </g>
+  <text x="48" y="842" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif" font-size="48" font-weight="800" fill="#ffffff">Codex Status Light</text>
+  <text x="48" y="882" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif" font-size="22" fill="#c6d0d6">菜单栏模式，轻量常驻，状态一眼可见。</text>
+</svg>

@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Codex Status Light</title>
+    <meta
+      name="description"
+      content="Codex Status Light 的支持页与隐私政策入口。"
+    />
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #0f161a;
+        --card: rgba(255, 255, 255, 0.96);
+        --text: #0f1418;
+        --muted: #5f6871;
+        --line: #d8dde3;
+        --accent: #1d4ed8;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font: 16px/1.6 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+        color: var(--text);
+        background:
+          radial-gradient(circle at top, rgba(255, 255, 255, 0.08), transparent 34%),
+          linear-gradient(180deg, #17242a 0%, var(--bg) 100%);
+      }
+      main {
+        max-width: 860px;
+        margin: 0 auto;
+        padding: 56px 20px 72px;
+      }
+      .hero {
+        display: grid;
+        gap: 22px;
+        align-items: start;
+      }
+      .logo {
+        width: 112px;
+        height: 112px;
+        border-radius: 28px;
+        background: #11181d;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 24px 72px rgba(0, 0, 0, 0.35);
+        object-fit: cover;
+      }
+      .card {
+        margin-top: 26px;
+        background: var(--card);
+        border: 1px solid rgba(16, 18, 20, 0.1);
+        border-radius: 24px;
+        padding: 28px;
+        box-shadow: 0 24px 80px rgba(0, 0, 0, 0.18);
+      }
+      h1 {
+        margin: 0;
+        font-size: 44px;
+        line-height: 1.05;
+        color: #ffffff;
+      }
+      .lede {
+        margin: 14px 0 0;
+        max-width: 58ch;
+        color: rgba(255, 255, 255, 0.78);
+        font-size: 18px;
+      }
+      h2 {
+        margin: 0 0 12px;
+        font-size: 22px;
+        line-height: 1.2;
+      }
+      p, li {
+        color: var(--muted);
+      }
+      ul {
+        margin: 0;
+        padding-left: 20px;
+      }
+      .links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 18px;
+      }
+      .button {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 16px;
+        border-radius: 14px;
+        background: #11181d;
+        color: #fff;
+        text-decoration: none;
+        font-weight: 600;
+      }
+      .button.secondary {
+        background: #f3f5f7;
+        color: #11181d;
+        border: 1px solid var(--line);
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+        margin-top: 18px;
+      }
+      .tile {
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        padding: 18px;
+        background: #fff;
+      }
+      a { color: var(--accent); }
+      .footer {
+        margin-top: 22px;
+        font-size: 14px;
+      }
+      @media (max-width: 700px) {
+        h1 { font-size: 34px; }
+        .grid { grid-template-columns: 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="hero">
+        <img class="logo" src="/logo-three-lights.png" alt="Codex Status Light logo" />
+        <div>
+          <h1>Codex Status Light</h1>
+          <p class="lede">
+            Codex Status Light 的静态站点入口。这里包含 App Store 提审所需的支持页和隐私政策页。
+          </p>
+        </div>
+      </div>
+
+      <section class="card">
+        <h2>Quick Links</h2>
+        <div class="links">
+          <a class="button" href="/support/">支持页面</a>
+          <a class="button secondary" href="/privacy/">隐私政策</a>
+          <a class="button secondary" href="mailto:huoyuan461@qq.com">联系邮箱</a>
+        </div>
+
+        <div class="grid">
+          <div class="tile">
+            <h3>Support</h3>
+            <p>首次启动、授权 `.codex`、显示位置和常见问题说明。</p>
+          </div>
+          <div class="tile">
+            <h3>Privacy</h3>
+            <p>说明仅本机只读访问，不收集、不上传、不共享用户数据。</p>
+          </div>
+        </div>
+
+        <p class="footer">
+          部署后可直接把此域名下的 <code>/support/</code> 和 <code>/privacy/</code> 填入 App Store Connect。
+        </p>
+      </section>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Codex Status Light 支持</title>
+    <meta name="description" content="Codex Status Light 的支持与使用说明。" />
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f6f7f8;
+        --card: #ffffff;
+        --text: #101214;
+        --muted: #5b6570;
+        --line: #d8dde3;
+        --accent: #1d4ed8;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font: 16px/1.6 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+        color: var(--text);
+        background: linear-gradient(180deg, #fbfbfc 0%, var(--bg) 100%);
+      }
+      main {
+        max-width: 760px;
+        margin: 0 auto;
+        padding: 48px 20px 64px;
+      }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        padding: 28px;
+        box-shadow: 0 12px 36px rgba(16, 18, 20, 0.08);
+      }
+      h1, h2 { line-height: 1.2; margin: 0 0 16px; }
+      h1 { font-size: 32px; }
+      h2 { font-size: 20px; margin-top: 28px; }
+      p, li { color: var(--muted); }
+      ul { margin: 0; padding-left: 20px; }
+      a { color: var(--accent); text-decoration: none; }
+      a:hover { text-decoration: underline; }
+      .email {
+        display: inline-block;
+        margin-top: 8px;
+        padding: 10px 14px;
+        border-radius: 12px;
+        background: #f3f6ff;
+        color: #1236a0;
+        font-weight: 600;
+      }
+      .note {
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 1px solid var(--line);
+        font-size: 14px;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="card">
+        <h1>Codex Status Light 支持</h1>
+        <p>Codex Status Light 是一个只读的本机状态监控工具，用于显示最近活跃的 Codex 会话状态。</p>
+
+        <h2>使用方法</h2>
+        <ul>
+          <li>首次启动后选择本机的 <code>.codex</code> 文件夹并授予只读权限。</li>
+          <li>选择“刘海旁”“桌面任意位置”或“仅菜单栏”。</li>
+          <li>红灯表示异常中断，黄灯表示正在运行，绿灯表示任务已完成。</li>
+        </ul>
+
+        <h2>常见问题</h2>
+        <ul>
+          <li>如果没有显示状态，请重新打开应用并重新授权 <code>.codex</code> 文件夹。</li>
+          <li>如果找不到 <code>.codex</code>，请在文件选择窗口按 <code>Command + Shift + .</code> 显示隐藏文件。</li>
+          <li>如果悬浮灯位置不合适，可以切换到桌面模式后直接拖动。</li>
+        </ul>
+
+        <h2>联系支持</h2>
+        <a class="email" href="mailto:huoyuan461@qq.com">huoyuan461@qq.com</a>
+
+        <p class="note">本页面可直接部署到任意 HTTPS 静态站点，并在 App Store Connect 中填写为支持 URL。</p>
+      </div>
+    </main>
+  </body>
+</html>

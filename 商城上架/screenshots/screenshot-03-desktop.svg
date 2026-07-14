@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#162229"/>
+      <stop offset="1" stop-color="#0b1114"/>
+    </linearGradient>
+    <linearGradient id="window" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f8fafb"/>
+      <stop offset="1" stop-color="#eef2f5"/>
+    </linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="18" stdDeviation="24" flood-color="#000" flood-opacity="0.38"/>
+    </filter>
+  </defs>
+  <rect width="1440" height="900" fill="url(#bg)"/>
+  <rect x="0" y="0" width="1440" height="30" fill="#e8edf1" opacity="0.96"/>
+  <rect x="72" y="126" width="792" height="618" rx="34" fill="url(#window)" filter="url(#shadow)"/>
+  <rect x="72" y="126" width="792" height="58" rx="34" fill="#ffffff"/>
+  <circle cx="102" cy="155" r="11" fill="#ff5f57"/>
+  <circle cx="130" cy="155" r="11" fill="#febc2e"/>
+  <circle cx="158" cy="155" r="11" fill="#28c840"/>
+  <text x="468" y="162" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif" font-size="18" font-weight="700" fill="#101214" text-anchor="middle">Codex Status Light</text>
+  <rect x="116" y="232" width="720" height="124" rx="24" fill="#f3f6f8"/>
+  <text x="152" y="278" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif" font-size="28" font-weight="800" fill="#101214">桌面任意位置</text>
+  <text x="152" y="314" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif" font-size="16" fill="#66707a">可拖动、可记忆位置，始终悬浮在其他窗口上方。</text>
+  <rect x="116" y="386" width="720" height="98" rx="24" fill="#ffffff" stroke="#e0e6ea"/>
+  <rect x="116" y="502" width="720" height="98" rx="24" fill="#ffffff" stroke="#e0e6ea"/>
+  <text x="152" y="436" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif" font-size="18" font-weight="700" fill="#101214">当前任务</text>
+  <text x="152" y="464" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif" font-size="14" fill="#66707a">在本机只读读取状态，不需要 API Key。</text>
+  <text x="152" y="552" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif" font-size="18" font-weight="700" fill="#101214">状态切换</text>
+  <text x="152" y="580" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif" font-size="14" fill="#66707a">黄灯运行、绿灯完成、红灯断线。</text>
+  <g transform="translate(1100 160)">
+    <rect x="0" y="0" width="112" height="44" rx="22" fill="#203038" filter="url(#shadow)"/>
+    <circle cx="34" cy="22" r="10" fill="#ff3d33" opacity="0.95"/>
+    <circle cx="56" cy="22" r="10" fill="#ffc714" opacity="0.95"/>
+    <circle cx="78" cy="22" r="10" fill="#33d159" opacity="0.95"/>
+  </g>
+  <text x="48" y="842" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif" font-size="48" font-weight="800" fill="#ffffff">Desktop overlay</text>
+  <text x="48" y="882" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif" font-size="22" fill="#c6d0d6">桌面模式可直接拖动，适合常驻监控。</text>
+</svg>
