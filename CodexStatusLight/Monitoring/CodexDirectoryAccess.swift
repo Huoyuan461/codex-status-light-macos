@@ -9,10 +9,20 @@ final class CodexDirectoryAccess {
 
     init() {
         restoreBookmark()
+        if directoryURL == nil {
+            directoryURL = autoLocateCodexDirectory()
+        }
     }
 
     deinit {
         if isAccessing { directoryURL?.stopAccessingSecurityScopedResource() }
+    }
+
+    func resolvedDirectoryURL() -> URL? {
+        if directoryURL == nil {
+            directoryURL = autoLocateCodexDirectory()
+        }
+        return directoryURL
     }
 
     func chooseDirectory() -> URL? {
@@ -62,5 +72,11 @@ final class CodexDirectoryAccess {
         directoryURL = url
         isAccessing = url.startAccessingSecurityScopedResource()
         if stale { saveBookmark(for: url) }
+    }
+
+    private func autoLocateCodexDirectory() -> URL? {
+        let candidate = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".codex", isDirectory: true)
+        guard FileManager.default.fileExists(atPath: candidate.path) else { return nil }
+        return candidate
     }
 }

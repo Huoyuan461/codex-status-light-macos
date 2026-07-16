@@ -6,7 +6,7 @@ struct DisplayModeSetupView: View {
 
     var body: some View {
         VStack(spacing: 22) {
-            StatusLightView(state: model.state, size: 48)
+            StatusLightView(state: model.state, size: 48, startupPhase: model.startupAnimationPhase)
             VStack(spacing: 6) {
                 Text("Codex 红绿灯").font(.largeTitle.bold())
                 Text("请选择状态灯显示位置，之后可以从菜单栏随时修改。")

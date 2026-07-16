@@ -5,11 +5,13 @@ import SwiftUI
 final class FloatingLightController: NSWindowController, NSWindowDelegate {
     private var state: CodexActivityState
     private var mode: DisplayMode
+    private var startupPhase: Int
     private static let positionKey = "floatingLightOrigin"
 
-    init(state: CodexActivityState, mode: DisplayMode) {
+    init(state: CodexActivityState, mode: DisplayMode, startupPhase: Int) {
         self.state = state
         self.mode = mode
+        self.startupPhase = startupPhase
         let window = NSPanel(
             contentRect: NSRect(x: 0, y: 0, width: 112, height: 44),
             styleMask: [.borderless, .nonactivatingPanel],
@@ -23,7 +25,7 @@ final class FloatingLightController: NSWindowController, NSWindowDelegate {
         window.level = .statusBar
         window.collectionBehavior = [.canJoinAllSpaces, .stationary, .fullScreenAuxiliary]
         window.isMovableByWindowBackground = mode == .desktop
-        window.contentView = NSHostingView(rootView: FloatingLightContent(state: state))
+        window.contentView = NSHostingView(rootView: FloatingLightContent(state: state, startupPhase: startupPhase))
         window.delegate = self
         placeWindow()
     }
@@ -36,7 +38,7 @@ final class FloatingLightController: NSWindowController, NSWindowDelegate {
     func update(state: CodexActivityState) {
         guard self.state != state else { return }
         self.state = state
-        window?.contentView = NSHostingView(rootView: FloatingLightContent(state: state))
+        refreshContent()
     }
 
     func setMode(_ mode: DisplayMode) {
@@ -44,6 +46,12 @@ final class FloatingLightController: NSWindowController, NSWindowDelegate {
         self.mode = mode
         window?.isMovableByWindowBackground = mode == .desktop
         placeWindow()
+        refreshContent()
+    }
+
+    func updateStartupPhase(_ startupPhase: Int) {
+        self.startupPhase = startupPhase
+        refreshContent()
     }
 
     func windowDidMove(_ notification: Notification) {
@@ -71,13 +79,19 @@ final class FloatingLightController: NSWindowController, NSWindowDelegate {
         }
         window.setFrameOrigin(NSPoint(x: x, y: y))
     }
+
+    private func refreshContent() {
+        guard let window else { return }
+        window.contentView = NSHostingView(rootView: FloatingLightContent(state: state, startupPhase: startupPhase))
+    }
 }
 
 private struct FloatingLightContent: View {
     let state: CodexActivityState
+    var startupPhase: Int = 4
 
     var body: some View {
-        StatusLightView(state: state, size: 20)
+        StatusLightView(state: state, size: 20, startupPhase: startupPhase)
             .padding(4)
             .help(state.title)
     }

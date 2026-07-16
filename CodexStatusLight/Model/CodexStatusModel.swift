@@ -1,6 +1,7 @@
 import AppKit
 import Observation
 import ServiceManagement
+import SwiftUI
 
 @MainActor
 @Observable
@@ -10,6 +11,7 @@ final class CodexStatusModel {
     private(set) var processIsRunning = false
     private(set) var lastCheckedAt = Date()
     private(set) var hasCodexDirectoryAccess = false
+    private(set) var startupAnimationPhase: Int = 0
     var displayMode: DisplayMode {
         didSet {
             UserDefaults.standard.set(displayMode.rawValue, forKey: Self.displayModeKey)
@@ -22,6 +24,7 @@ final class CodexStatusModel {
     private let processMonitor = CodexProcessMonitor()
     private let sessionMonitor = CodexSessionMonitor()
     private let directoryAccess = CodexDirectoryAccess()
+    private let fileMonitor = CodexFileMonitor()
     private let resolver = StatusResolver()
     private var monitoringTask: Task<Void, Never>?
     private var floatingController: FloatingLightController?
@@ -31,6 +34,7 @@ final class CodexStatusModel {
         displayMode = DisplayMode(rawValue: UserDefaults.standard.string(forKey: Self.displayModeKey) ?? "") ?? .notch
         launchAtLoginEnabled = SMAppService.mainApp.status == .enabled
         hasCodexDirectoryAccess = directoryAccess.directoryURL != nil
+        Task { [weak self] in await self?.playStartupAnimation() }
         monitoringTask = Task { [weak self] in await self?.monitorContinuously() }
         Task { @MainActor [weak self] in self?.updateFloatingWindow() }
     }
@@ -78,18 +82,32 @@ final class CodexStatusModel {
     }
 
     private func refresh() async {
-        guard let directory = directoryAccess.directoryURL else {
-            snapshot = nil
-            state = .idle
-            hasCodexDirectoryAccess = false
-            return
+        let newSnapshot: CodexSessionSnapshot?
+        if let directory = directoryAccess.resolvedDirectoryURL() {
+            fileMonitor.updateMonitoredPaths(
+                [
+                    directory,
+                    directory.appendingPathComponent("sqlite", isDirectory: true),
+                    directory.appendingPathComponent("sessions", isDirectory: true),
+                    directory.appendingPathComponent("archived_sessions", isDirectory: true)
+                ],
+                onChange: { [weak self] in
+                    Task { @MainActor in
+                        self?.refreshNow()
+                    }
+                }
+            )
+            newSnapshot = await sessionMonitor.latestSession(in: directory)
+        } else {
+            fileMonitor.stop()
+            newSnapshot = nil
         }
-        let newSnapshot = await sessionMonitor.latestSession(in: directory)
         let shouldCheckProcess = Int(Date().timeIntervalSince1970) % 2 == 0 || !processIsRunning
         let running = shouldCheckProcess ? processMonitor.isCodexAppServerRunning() : processIsRunning
         processIsRunning = running
         snapshot = newSnapshot
         state = resolver.resolve(processIsRunning: running, snapshot: newSnapshot, previousState: state)
+        hasCodexDirectoryAccess = directoryAccess.resolvedDirectoryURL() != nil
         lastCheckedAt = Date()
         floatingController?.update(state: state)
     }
@@ -100,10 +118,26 @@ final class CodexStatusModel {
             floatingController = nil
         } else {
             if floatingController == nil {
-                floatingController = FloatingLightController(state: state, mode: displayMode)
+                floatingController = FloatingLightController(state: state, mode: displayMode, startupPhase: startupAnimationPhase)
             }
             floatingController?.setMode(displayMode)
+            floatingController?.updateStartupPhase(startupAnimationPhase)
             floatingController?.show()
+        }
+    }
+
+    private func playStartupAnimation() async {
+        try? await Task.sleep(for: .milliseconds(120))
+        let phases = [1, 2, 3, 4]
+        for phase in phases {
+            guard !Task.isCancelled else { return }
+            withAnimation(.easeOut(duration: 0.18)) {
+                startupAnimationPhase = phase
+            }
+            floatingController?.updateStartupPhase(phase)
+            if phase < 4 {
+                try? await Task.sleep(for: .milliseconds(140))
+            }
         }
     }
 }

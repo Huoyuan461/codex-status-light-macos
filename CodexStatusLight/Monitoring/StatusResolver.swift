@@ -10,23 +10,39 @@ struct StatusResolver {
         now: Date = Date(),
         timeout: TimeInterval = defaultTimeout
     ) -> CodexActivityState {
-        guard let snapshot else { return .idle }
+        guard let snapshot else {
+            if processIsRunning {
+                return .running
+            }
+            if previousState == .running || previousState == .disconnected {
+                return .disconnected
+            }
+            return .idle
+        }
 
         if snapshot.eventState == .finalResponse {
-            return processIsRunning ? .completed : .completed
+            return .completed
+        }
+
+        if !processIsRunning {
+            if snapshot.eventState == .active || previousState == .running || previousState == .disconnected {
+                return .disconnected
+            }
+            return .idle
+        }
+
+        if snapshot.eventState == .active {
+            return .running
+        }
+
+        if snapshot.eventState == .unknown {
+            return .running
         }
 
         let silence = now.timeIntervalSince(snapshot.lastActivityAt)
-        if snapshot.eventState == .active || previousState == .running {
-            if !processIsRunning || silence > timeout {
-                return .disconnected
-            }
+        if silence > timeout, previousState == .running {
             return .running
         }
-
-        if processIsRunning, silence <= timeout {
-            return .running
-        }
-        return .idle
+        return .running
     }
 }

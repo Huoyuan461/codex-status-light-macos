@@ -15,7 +15,7 @@ struct CodexStatusLightApp: App {
         MenuBarExtra {
             StatusPanelView(model: model)
         } label: {
-            StatusLightView(state: model.state, size: 8)
+            StatusLightView(state: model.state, size: 8, startupPhase: model.startupAnimationPhase)
                 .accessibilityLabel(model.state.title)
         }
         .menuBarExtraStyle(.window)

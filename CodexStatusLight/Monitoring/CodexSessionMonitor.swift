@@ -114,27 +114,60 @@ actor CodexSessionMonitor {
         for line in lines {
             guard let lineData = line.data(using: .utf8),
                   let object = try? JSONSerialization.jsonObject(with: lineData) as? [String: Any] else { continue }
+            let eventType = object["type"] as? String ?? ""
+            let payload = object["payload"] as? [String: Any] ?? [:]
+            let payloadType = stringValue(payload["type"])
+            let phase = stringValue(payload["phase"])
             if let timestamp = object["timestamp"] as? String,
                let date = timestampDate(timestamp) {
                 lastDate = date
             }
-            guard let type = object["type"] as? String,
-                  let payload = object["payload"] as? [String: Any] else { continue }
-            let payloadType = payload["type"] as? String ?? ""
-            if type == "response_item", payloadType == "message",
-               payload["role"] as? String == "assistant",
-               payload["phase"] as? String == "final_answer" {
+            if eventType == "event_msg", payloadType == "task_complete" {
                 state = .finalResponse
-            } else if type == "event_msg", payloadType == "agent_message",
-                      payload["phase"] as? String == "final_answer" {
+                continue
+            }
+            if isFinalResponseEvent(eventType: eventType, payload: payload, payloadType: payloadType, phase: phase) {
                 state = .finalResponse
-            } else if ["reasoning", "custom_tool_call", "custom_tool_call_output", "function_call", "function_call_output"].contains(payloadType) {
-                state = .active
-            } else if type == "turn_context" || (type == "event_msg" && payloadType == "user_message") {
+                continue
+            }
+
+            if isActivityEvent(eventType: eventType, payload: payload, payloadType: payloadType, phase: phase) {
                 state = .active
             }
         }
         return (state, lastDate)
+    }
+
+    private func isFinalResponseEvent(eventType: String, payload: [String: Any], payloadType: String, phase: String) -> Bool {
+        if phase == "final_answer" {
+            return true
+        }
+        if eventType == "response_item", payloadType == "message", stringValue(payload["role"]) == "assistant" {
+            return phase == "final_answer"
+        }
+        if eventType == "response_item", payload["completed_at"] != nil {
+            return true
+        }
+        return false
+    }
+
+    private func isActivityEvent(eventType: String, payload: [String: Any], payloadType: String, phase: String) -> Bool {
+        if eventType == "event_msg" {
+            return phase != "final_answer"
+        }
+        if eventType == "turn_context" || eventType == "world_state" || eventType == "session_meta" {
+            return false
+        }
+        if ["reasoning", "custom_tool_call", "custom_tool_call_output", "function_call", "function_call_output"].contains(payloadType) {
+            return true
+        }
+        if ["message", "text", "summary", "assistant_message", "tool_call", "tool_result"].contains(payloadType) {
+            return true
+        }
+        if payload["message"] != nil || payload["text"] != nil || payload["client_id"] != nil {
+            return true
+        }
+        return false
     }
 
     private func modificationDate(_ url: URL) -> Date {
@@ -144,6 +177,10 @@ actor CodexSessionMonitor {
     private func string(_ statement: OpaquePointer, column: Int32) -> String {
         guard let bytes = sqlite3_column_text(statement, column) else { return "" }
         return String(cString: bytes)
+    }
+
+    private func stringValue(_ value: Any?) -> String {
+        value as? String ?? ""
     }
 
     private func timestampDate(_ value: String) -> Date? {

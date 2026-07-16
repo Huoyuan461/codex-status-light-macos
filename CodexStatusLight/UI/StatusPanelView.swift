@@ -7,12 +7,16 @@ struct StatusPanelView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             HStack(spacing: 12) {
-                StatusLightView(state: model.state, size: 30)
+                StatusLightView(state: model.state, size: 30, startupPhase: model.startupAnimationPhase)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(model.state.title).font(.headline)
                     Text(model.state.detail).font(.caption).foregroundStyle(.secondary)
                 }
                 Spacer()
+                Button("立即刷新") {
+                    model.refreshNow()
+                }
+                .buttonStyle(.bordered)
             }
 
             Divider()
@@ -54,11 +58,17 @@ struct StatusPanelView: View {
                 detailRow("目录", snapshot.workingDirectory.isEmpty ? "未知" : snapshot.workingDirectory)
                 detailRow("持续", snapshot.startedAt.formattedDuration(to: Date()))
                 detailRow("最后活动", snapshot.lastActivityAt.formatted(date: .omitted, time: .standard))
+                detailRow("最近检查", model.lastCheckedAt.formatted(date: .omitted, time: .standard))
             }
         } else {
-            Text("还没有发现本地 Codex 会话。")
-                .font(.callout)
-                .foregroundStyle(.secondary)
+            VStack(alignment: .leading, spacing: 6) {
+                Text("还没有发现本地 Codex 会话。")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+                Text("如果你已经先打开了 Codex，点一下“立即刷新”通常就会恢复。")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
         }
     }
 
