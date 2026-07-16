@@ -122,20 +122,27 @@ actor CodexSessionMonitor {
                let date = timestampDate(timestamp) {
                 lastDate = date
             }
-            if eventType == "event_msg", payloadType == "task_complete" {
-                state = .finalResponse
+            if isTurnStartEvent(eventType: eventType, payloadType: payloadType) {
+                state = .active
                 continue
             }
             if isFinalResponseEvent(eventType: eventType, payload: payload, payloadType: payloadType, phase: phase) {
                 state = .finalResponse
                 continue
             }
-
+            if eventType == "event_msg", payloadType == "task_complete" {
+                state = .finalResponse
+                continue
+            }
             if isActivityEvent(eventType: eventType, payload: payload, payloadType: payloadType, phase: phase) {
                 state = .active
             }
         }
         return (state, lastDate)
+    }
+
+    private func isTurnStartEvent(eventType: String, payloadType: String) -> Bool {
+        eventType == "turn_context" || (eventType == "event_msg" && payloadType == "task_started")
     }
 
     private func isFinalResponseEvent(eventType: String, payload: [String: Any], payloadType: String, phase: String) -> Bool {
@@ -153,7 +160,7 @@ actor CodexSessionMonitor {
 
     private func isActivityEvent(eventType: String, payload: [String: Any], payloadType: String, phase: String) -> Bool {
         if eventType == "event_msg" {
-            return phase != "final_answer"
+            return phase != "final_answer" && payloadType != "task_complete" && payloadType != "task_started"
         }
         if eventType == "turn_context" || eventType == "world_state" || eventType == "session_meta" {
             return false

@@ -42,6 +42,7 @@ struct StatusPanelView: View {
                 Button("打开 Codex") { model.openCodex() }
                 Button("打开任务目录") { model.openWorkingDirectory() }
                     .disabled(model.snapshot?.workingDirectory.isEmpty ?? true)
+                Button("关闭插件") { model.closePlugin() }
                 Spacer()
                 Button("退出") { NSApplication.shared.terminate(nil) }
             }

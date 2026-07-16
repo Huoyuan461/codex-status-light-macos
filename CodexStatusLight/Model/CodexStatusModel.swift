@@ -64,6 +64,10 @@ final class CodexStatusModel {
         NSWorkspace.shared.open(URL(fileURLWithPath: path))
     }
 
+    func closePlugin() {
+        displayMode = .menuBar
+    }
+
     func setLaunchAtLogin(_ enabled: Bool) {
         do {
             if enabled { try SMAppService.mainApp.register() }

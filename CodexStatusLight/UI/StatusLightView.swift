@@ -9,7 +9,6 @@ struct StatusLightView: View {
 
     var body: some View {
         HStack(spacing: size * 0.36) {
-            accentDot
             lamp(.disconnected, color: Color(red: 1, green: 0.29, blue: 0.25), index: 0)
             lamp(.running, color: Color(red: 1, green: 0.82, blue: 0.18), index: 1)
             lamp(.completed, color: Color(red: 0.24, green: 0.84, blue: 0.43), index: 2)
@@ -56,18 +55,6 @@ struct StatusLightView: View {
         .animation(.easeOut(duration: 0.24), value: startupPhase)
         .accessibilityLabel(state.title)
         .accessibilityValue(state.detail)
-    }
-
-    private var accentDot: some View {
-        let startupInProgress = startupPhase < 4
-        let visible = startupInProgress || state == .running || state == .completed
-        return Circle()
-            .fill(Color(red: 0.38, green: 0.62, blue: 1.0))
-            .frame(width: size * 0.34, height: size * 0.34)
-            .opacity(visible ? (startupInProgress ? 0.82 : 0.42) : 0.14)
-            .shadow(color: Color(red: 0.38, green: 0.62, blue: 1.0).opacity(0.35), radius: 2)
-            .scaleEffect(startupInProgress ? (startupPhase > 0 ? 1.0 : 0.72) : 1.0)
-            .animation(.easeOut(duration: 0.28), value: startupPhase)
     }
 
     private func lamp(_ lampState: CodexActivityState, color: Color, index: Int) -> some View {

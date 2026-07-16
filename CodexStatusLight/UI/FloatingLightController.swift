@@ -25,7 +25,9 @@ final class FloatingLightController: NSWindowController, NSWindowDelegate {
         window.level = .statusBar
         window.collectionBehavior = [.canJoinAllSpaces, .stationary, .fullScreenAuxiliary]
         window.isMovableByWindowBackground = mode == .desktop
-        window.contentView = NSHostingView(rootView: FloatingLightContent(state: state, startupPhase: startupPhase))
+        window.contentView = NSHostingView(rootView: FloatingLightContent(state: state, startupPhase: startupPhase) { [weak self] in
+            self?.hide()
+        })
         window.delegate = self
         placeWindow()
     }
@@ -82,17 +84,33 @@ final class FloatingLightController: NSWindowController, NSWindowDelegate {
 
     private func refreshContent() {
         guard let window else { return }
-        window.contentView = NSHostingView(rootView: FloatingLightContent(state: state, startupPhase: startupPhase))
+        window.contentView = NSHostingView(rootView: FloatingLightContent(state: state, startupPhase: startupPhase) { [weak self] in
+            self?.hide()
+        })
     }
 }
 
 private struct FloatingLightContent: View {
     let state: CodexActivityState
     var startupPhase: Int = 4
+    let closeAction: () -> Void
 
     var body: some View {
-        StatusLightView(state: state, size: 20, startupPhase: startupPhase)
-            .padding(4)
-            .help(state.title)
+        ZStack(alignment: .topTrailing) {
+            StatusLightView(state: state, size: 20, startupPhase: startupPhase)
+                .padding(4)
+                .help(state.title)
+
+            Button(action: closeAction) {
+                Image(systemName: "xmark")
+                    .font(.system(size: 8, weight: .semibold))
+                    .foregroundStyle(.white.opacity(0.86))
+                    .padding(5)
+                    .background(.black.opacity(0.28), in: Circle())
+            }
+            .buttonStyle(.plain)
+            .padding(3)
+            .accessibilityLabel("关闭插件")
+        }
     }
 }
