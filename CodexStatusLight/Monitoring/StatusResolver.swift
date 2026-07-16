@@ -24,6 +24,8 @@ struct StatusResolver {
             return .completed
         }
 
+        let silence = now.timeIntervalSince(snapshot.lastActivityAt)
+
         if !processIsRunning {
             if snapshot.eventState == .active || previousState == .running || previousState == .disconnected {
                 return .disconnected
@@ -31,18 +33,21 @@ struct StatusResolver {
             return .idle
         }
 
-        if snapshot.eventState == .active {
+        if snapshot.eventState == .active && silence <= timeout {
             return .running
+        }
+
+        if snapshot.eventState == .active && silence > timeout {
+            return .disconnected
         }
 
         if snapshot.eventState == .unknown {
+            if silence > timeout {
+                return previousState == .running ? .disconnected : .idle
+            }
             return .running
         }
 
-        let silence = now.timeIntervalSince(snapshot.lastActivityAt)
-        if silence > timeout, previousState == .running {
-            return .running
-        }
         return .running
     }
 }

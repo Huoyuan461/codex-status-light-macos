@@ -15,7 +15,6 @@ final class CodexStatusModel {
     var displayMode: DisplayMode {
         didSet {
             UserDefaults.standard.set(displayMode.rawValue, forKey: Self.displayModeKey)
-            UserDefaults.standard.set(true, forKey: "didChooseDisplayMode")
             updateFloatingWindow()
         }
     }
@@ -44,7 +43,7 @@ final class CodexStatusModel {
     }
 
     func showPositionChooser() {
-        NotificationCenter.default.post(name: .showCodexStatusSetup, object: nil)
+        displayMode = displayMode == .desktop ? .notch : .desktop
     }
 
     func chooseCodexDirectory() {

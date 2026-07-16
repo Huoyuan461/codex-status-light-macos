@@ -31,7 +31,7 @@ actor CodexSessionMonitor {
         }
         defer { sqlite3_close(database) }
 
-        let sql = "SELECT id, title, cwd, rollout_path, COALESCE(created_at_ms, created_at * 1000) FROM threads WHERE archived = 0 ORDER BY COALESCE(updated_at_ms, updated_at * 1000) DESC LIMIT 1"
+        let sql = "SELECT id, title, cwd, rollout_path, COALESCE(created_at_ms, created_at * 1000) FROM threads ORDER BY COALESCE(updated_at_ms, updated_at * 1000) DESC LIMIT 1"
         var statement: OpaquePointer?
         guard sqlite3_prepare_v2(database, sql, -1, &statement, nil) == SQLITE_OK, let statement else { return nil }
         defer { sqlite3_finalize(statement) }
@@ -75,17 +75,13 @@ actor CodexSessionMonitor {
 
     private func latestSessionFromFiles() -> CodexSessionSnapshot? {
         guard let codexDirectory else { return nil }
-        let sessions = codexDirectory.appendingPathComponent("sessions", isDirectory: true)
-        guard let enumerator = fileManager.enumerator(
-            at: sessions,
-            includingPropertiesForKeys: [.contentModificationDateKey, .isRegularFileKey],
-            options: [.skipsHiddenFiles]
-        ) else { return nil }
-
-        var newest: URL?
-        for case let url as URL in enumerator where url.pathExtension == "jsonl" {
-            if newest == nil || modificationDate(url) > modificationDate(newest!) { newest = url }
-        }
+        let candidates = [
+            codexDirectory.appendingPathComponent("sessions", isDirectory: true),
+            codexDirectory.appendingPathComponent("archived_sessions", isDirectory: true)
+        ]
+        let newest = candidates
+            .compactMap { latestRolloutFile(in: $0) }
+            .max { modificationDate($0) < modificationDate($1) }
         guard let newest else { return nil }
         let parsed = parseRollout(newest)
         let attributes = try? fileManager.attributesOfItem(atPath: newest.path)
@@ -109,36 +105,26 @@ actor CodexSessionMonitor {
         }
 
         var lastDate: Date?
-        var state: SessionEventState = .unknown
         let lines = content.split(separator: "\n", omittingEmptySubsequences: true).suffix(400)
-        for line in lines {
+        for line in lines.reversed() {
             guard let lineData = line.data(using: .utf8),
                   let object = try? JSONSerialization.jsonObject(with: lineData) as? [String: Any] else { continue }
             let eventType = object["type"] as? String ?? ""
             let payload = object["payload"] as? [String: Any] ?? [:]
             let payloadType = stringValue(payload["type"])
             let phase = stringValue(payload["phase"])
-            if let timestamp = object["timestamp"] as? String,
-               let date = timestampDate(timestamp) {
-                lastDate = date
+            let timestampDate = (object["timestamp"] as? String).flatMap { self.timestampDate($0) }
+            if lastDate == nil, let timestampDate {
+                lastDate = timestampDate
             }
-            if isTurnStartEvent(eventType: eventType, payloadType: payloadType) {
-                state = .active
-                continue
+            if isFinalResponseEvent(eventType: eventType, payload: payload, payloadType: payloadType, phase: phase) || (eventType == "event_msg" && payloadType == "task_complete") {
+                return (.finalResponse, timestampDate ?? lastDate)
             }
-            if isFinalResponseEvent(eventType: eventType, payload: payload, payloadType: payloadType, phase: phase) {
-                state = .finalResponse
-                continue
-            }
-            if eventType == "event_msg", payloadType == "task_complete" {
-                state = .finalResponse
-                continue
-            }
-            if isActivityEvent(eventType: eventType, payload: payload, payloadType: payloadType, phase: phase) {
-                state = .active
+            if isTurnStartEvent(eventType: eventType, payloadType: payloadType) || isActivityEvent(eventType: eventType, payload: payload, payloadType: payloadType, phase: phase) {
+                return (.active, timestampDate ?? lastDate)
             }
         }
-        return (state, lastDate)
+        return (.unknown, lastDate)
     }
 
     private func isTurnStartEvent(eventType: String, payloadType: String) -> Bool {
@@ -179,6 +165,22 @@ actor CodexSessionMonitor {
 
     private func modificationDate(_ url: URL) -> Date {
         (try? url.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate) ?? .distantPast
+    }
+
+    private func latestRolloutFile(in directory: URL) -> URL? {
+        guard let enumerator = fileManager.enumerator(
+            at: directory,
+            includingPropertiesForKeys: [.contentModificationDateKey, .isRegularFileKey],
+            options: [.skipsHiddenFiles]
+        ) else { return nil }
+
+        var newest: URL?
+        for case let url as URL in enumerator where url.pathExtension == "jsonl" {
+            if newest == nil || modificationDate(url) > modificationDate(newest!) {
+                newest = url
+            }
+        }
+        return newest
     }
 
     private func string(_ statement: OpaquePointer, column: Int32) -> String {

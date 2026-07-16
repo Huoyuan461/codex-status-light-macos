@@ -23,16 +23,11 @@ struct StatusPanelView: View {
             sessionDetails
             Divider()
 
-            Button(model.hasCodexDirectoryAccess ? "重新授权 Codex 文件夹…" : "选择 Codex 文件夹…") {
-                model.chooseCodexDirectory()
-            }
-
             Picker("显示位置", selection: $model.displayMode) {
                 ForEach(DisplayMode.allCases) { mode in
                     Text(mode.title).tag(mode)
                 }
             }
-            Button("打开位置选择器…") { model.showPositionChooser() }
             Toggle("登录时启动", isOn: Binding(
                 get: { model.launchAtLoginEnabled },
                 set: { model.setLaunchAtLogin($0) }
