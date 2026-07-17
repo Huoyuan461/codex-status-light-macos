@@ -15,6 +15,9 @@ final class CodexStatusModel {
     var displayMode: DisplayMode {
         didSet {
             UserDefaults.standard.set(displayMode.rawValue, forKey: Self.displayModeKey)
+            if displayMode != .menuBar {
+                UserDefaults.standard.set(displayMode.rawValue, forKey: Self.lastVisibleDisplayModeKey)
+            }
             updateFloatingWindow()
         }
     }
@@ -28,9 +31,12 @@ final class CodexStatusModel {
     private var monitoringTask: Task<Void, Never>?
     private var floatingController: FloatingLightController?
     private static let displayModeKey = "displayMode"
+    private static let lastVisibleDisplayModeKey = "lastVisibleDisplayMode"
 
     init() {
-        displayMode = DisplayMode(rawValue: UserDefaults.standard.string(forKey: Self.displayModeKey) ?? "") ?? .notch
+        let storedMode = DisplayMode(rawValue: UserDefaults.standard.string(forKey: Self.displayModeKey) ?? "") ?? .notch
+        let lastVisibleMode = DisplayMode(rawValue: UserDefaults.standard.string(forKey: Self.lastVisibleDisplayModeKey) ?? "") ?? .notch
+        displayMode = storedMode == .menuBar ? lastVisibleMode : storedMode
         launchAtLoginEnabled = SMAppService.mainApp.status == .enabled
         hasCodexDirectoryAccess = directoryAccess.directoryURL != nil
         Task { [weak self] in await self?.playStartupAnimation() }
