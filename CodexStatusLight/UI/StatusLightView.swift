@@ -96,7 +96,7 @@ struct StatusLightView: View {
             .blur(radius: startupInProgress && !startupLit ? 0.5 : 0)
             .animation(
                 isActive && animated
-                    ? .easeInOut(duration: 0.9).repeatForever(autoreverses: true)
+                    ? .easeInOut(duration: 0.48).repeatForever(autoreverses: true)
                     : .default,
                 value: flashing
             )
