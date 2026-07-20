@@ -24,12 +24,14 @@ final class CodexStatusModel {
     var launchAtLoginEnabled = false
 
     private let processMonitor = CodexProcessMonitor()
+    private let networkMonitor = NetworkMonitor()
     private let sessionMonitor = CodexSessionMonitor()
     private let directoryAccess = CodexDirectoryAccess()
     private let fileMonitor = CodexFileMonitor()
     private let resolver = StatusResolver()
     private var monitoringTask: Task<Void, Never>?
     private var floatingController: FloatingLightController?
+    private var hasPlayedLaunchAnimation = false
     private static let displayModeKey = "displayMode"
     private static let lastVisibleDisplayModeKey = "lastVisibleDisplayMode"
 
@@ -39,7 +41,6 @@ final class CodexStatusModel {
         displayMode = storedMode == .menuBar ? lastVisibleMode : storedMode
         launchAtLoginEnabled = SMAppService.mainApp.status == .enabled
         hasCodexDirectoryAccess = directoryAccess.directoryURL != nil
-        Task { [weak self] in await self?.playStartupAnimation() }
         monitoringTask = Task { [weak self] in await self?.monitorContinuously() }
         Task { @MainActor [weak self] in self?.updateFloatingWindow() }
     }
@@ -71,6 +72,27 @@ final class CodexStatusModel {
 
     func closePlugin() {
         displayMode = .menuBar
+    }
+
+    func ensureVisibleOnLaunch() {
+        if displayMode == .menuBar {
+            displayMode = .notch
+        }
+        updateFloatingWindow()
+    }
+
+    func beginLaunchAnimation() {
+        guard !hasPlayedLaunchAnimation else {
+            updateFloatingWindow()
+            return
+        }
+        hasPlayedLaunchAnimation = true
+        if displayMode == .menuBar {
+            displayMode = .notch
+        }
+        startupAnimationPhase = 0
+        updateFloatingWindow()
+        Task { [weak self] in await self?.playStartupAnimation() }
     }
 
     func setLaunchAtLogin(_ enabled: Bool) {
@@ -115,7 +137,12 @@ final class CodexStatusModel {
         let running = shouldCheckProcess ? processMonitor.isCodexAppServerRunning() : processIsRunning
         processIsRunning = running
         snapshot = newSnapshot
-        state = resolver.resolve(processIsRunning: running, snapshot: newSnapshot, previousState: state)
+        state = resolver.resolve(
+            processIsRunning: running,
+            networkIsAvailable: networkMonitor.isNetworkAvailable,
+            snapshot: newSnapshot,
+            previousState: state
+        )
         hasCodexDirectoryAccess = directoryAccess.resolvedDirectoryURL() != nil
         lastCheckedAt = Date()
         floatingController?.update(state: state)
@@ -136,7 +163,7 @@ final class CodexStatusModel {
     }
 
     private func playStartupAnimation() async {
-        try? await Task.sleep(for: .milliseconds(120))
+        try? await Task.sleep(for: .milliseconds(180))
         let phases = [1, 2, 3, 4]
         for phase in phases {
             guard !Task.isCancelled else { return }
@@ -145,7 +172,7 @@ final class CodexStatusModel {
             }
             floatingController?.updateStartupPhase(phase)
             if phase < 4 {
-                try? await Task.sleep(for: .milliseconds(140))
+                try? await Task.sleep(for: .seconds(1))
             }
         }
     }

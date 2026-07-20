@@ -5,17 +5,18 @@ struct StatusResolver {
 
     func resolve(
         processIsRunning: Bool,
+        networkIsAvailable: Bool,
         snapshot: CodexSessionSnapshot?,
         previousState: CodexActivityState,
         now: Date = Date(),
         timeout: TimeInterval = defaultTimeout
     ) -> CodexActivityState {
         guard let snapshot else {
-            if processIsRunning {
-                return .running
+            if previousState == .completed {
+                return .completed
             }
-            if previousState == .running || previousState == .disconnected {
-                return .disconnected
+            if !processIsRunning || !networkIsAvailable {
+                return previousState == .running ? .disconnected : .idle
             }
             return .idle
         }
@@ -26,11 +27,8 @@ struct StatusResolver {
 
         let silence = now.timeIntervalSince(snapshot.lastActivityAt)
 
-        if !processIsRunning {
-            if snapshot.eventState == .active || previousState == .running || previousState == .disconnected {
-                return .disconnected
-            }
-            return .idle
+        if !processIsRunning || !networkIsAvailable {
+            return previousState == .running || snapshot.eventState == .active ? .disconnected : .idle
         }
 
         if snapshot.eventState == .active && silence <= timeout {
@@ -38,16 +36,16 @@ struct StatusResolver {
         }
 
         if snapshot.eventState == .active && silence > timeout {
-            return .disconnected
+            return previousState == .running ? .disconnected : .idle
         }
 
         if snapshot.eventState == .unknown {
-            if silence > timeout {
-                return previousState == .running ? .disconnected : .idle
+            if silence <= timeout {
+                return previousState == .running ? .running : .idle
             }
-            return .running
+            return previousState == .running ? .disconnected : .idle
         }
 
-        return .running
+        return previousState == .completed ? .completed : .idle
     }
 }

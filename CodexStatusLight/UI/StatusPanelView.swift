@@ -7,9 +7,9 @@ struct StatusPanelView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             HStack(spacing: 12) {
-                StatusLightView(state: model.state, size: 30, startupPhase: model.startupAnimationPhase)
+                StatusSummaryBadge(state: model.state)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(model.state.title).font(.headline)
+                    Text("Codex Status Light").font(.headline)
                     Text(model.state.detail).font(.caption).foregroundStyle(.secondary)
                 }
                 Spacer()
@@ -74,6 +74,46 @@ struct StatusPanelView: View {
             Text(value).lineLimit(2).truncationMode(.middle).textSelection(.enabled)
         }
         .font(.callout)
+    }
+}
+
+private struct StatusSummaryBadge: View {
+    let state: CodexActivityState
+
+    private var tint: Color {
+        switch state {
+        case .disconnected: .red
+        case .running: .yellow
+        case .completed: .green
+        case .idle: .gray
+        }
+    }
+
+    var body: some View {
+        HStack(spacing: 6) {
+            Circle().fill(tint).frame(width: 8, height: 8)
+            Circle().fill(tint.opacity(0.55)).frame(width: 8, height: 8)
+            Circle().fill(tint.opacity(0.25)).frame(width: 8, height: 8)
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 8)
+        .background(
+            Capsule(style: .continuous)
+                .fill(
+                    LinearGradient(
+                        colors: [
+                            Color(red: 0.12, green: 0.14, blue: 0.17),
+                            Color(red: 0.09, green: 0.11, blue: 0.13)
+                        ],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
+                .overlay(
+                    Capsule(style: .continuous)
+                        .strokeBorder(.white.opacity(0.08), lineWidth: 1)
+                )
+        )
     }
 }
 

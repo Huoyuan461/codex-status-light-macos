@@ -9,16 +9,43 @@ struct CodexStatusLightApp: App {
         let model = CodexStatusModel()
         _model = State(initialValue: model)
         appDelegate.model = model
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(250))
+            model.beginLaunchAnimation()
+        }
     }
 
     var body: some Scene {
         MenuBarExtra {
             StatusPanelView(model: model)
         } label: {
-            StatusLightView(state: model.state, size: 8, startupPhase: model.startupAnimationPhase)
-                .accessibilityLabel(model.state.title)
+            BrandBadgeView()
+                .onAppear {
+                    model.beginLaunchAnimation()
+                }
+                .accessibilityLabel("Codex Status Light")
         }
         .menuBarExtraStyle(.window)
+    }
+}
+
+private struct BrandBadgeView: View {
+    var body: some View {
+        HStack(spacing: 3) {
+            Capsule().fill(Color.white.opacity(0.92)).frame(width: 5, height: 5)
+            Capsule().fill(Color.white.opacity(0.72)).frame(width: 5, height: 5)
+            Capsule().fill(Color.white.opacity(0.92)).frame(width: 5, height: 5)
+        }
+        .padding(.horizontal, 7)
+        .padding(.vertical, 4)
+        .background(
+            Capsule(style: .continuous)
+                .fill(.black.opacity(0.84))
+                .overlay(
+                    Capsule(style: .continuous)
+                        .strokeBorder(.white.opacity(0.10), lineWidth: 1)
+                )
+        )
     }
 }
 
@@ -27,11 +54,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     weak var model: CodexStatusModel?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        NSApplication.shared.setActivationPolicy(.accessory)
+        NSApplication.shared.setActivationPolicy(.regular)
+        NSApplication.shared.activate(ignoringOtherApps: true)
+        appDidLaunch()
     }
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
         NSApplication.shared.activate(ignoringOtherApps: true)
         return true
+    }
+
+    private func appDidLaunch() {
+        model?.beginLaunchAnimation()
     }
 }

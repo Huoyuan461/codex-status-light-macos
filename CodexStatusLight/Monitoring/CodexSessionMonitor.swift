@@ -100,35 +100,125 @@ actor CodexSessionMonitor {
 
     private func parseRollout(_ url: URL) -> (state: SessionEventState, date: Date?) {
         guard let data = try? Data(contentsOf: url, options: [.mappedIfSafe]),
-              let content = String(data: data.suffix(512 * 1024), encoding: .utf8) else {
+              !data.isEmpty else {
             return (.unknown, nil)
         }
 
-        var lastDate: Date?
-        let lines = content.split(separator: "\n", omittingEmptySubsequences: true).suffix(400)
-        for line in lines.reversed() {
+        let tail = data.suffix(1024 * 1024)
+        let content = String(decoding: tail, as: UTF8.self)
+
+        let lines = content.split(separator: "\n", omittingEmptySubsequences: true).suffix(1200)
+        var records: [RolloutRecord] = []
+        records.reserveCapacity(lines.count)
+
+        for line in lines {
             guard let lineData = line.data(using: .utf8),
                   let object = try? JSONSerialization.jsonObject(with: lineData) as? [String: Any] else { continue }
             let eventType = object["type"] as? String ?? ""
             let payload = object["payload"] as? [String: Any] ?? [:]
-            let payloadType = stringValue(payload["type"])
-            let phase = stringValue(payload["phase"])
-            let timestampDate = (object["timestamp"] as? String).flatMap { self.timestampDate($0) }
-            if lastDate == nil, let timestampDate {
-                lastDate = timestampDate
-            }
-            if isFinalResponseEvent(eventType: eventType, payload: payload, payloadType: payloadType, phase: phase) || (eventType == "event_msg" && payloadType == "task_complete") {
-                return (.finalResponse, timestampDate ?? lastDate)
-            }
-            if isActivityEvent(eventType: eventType, payload: payload, payloadType: payloadType, phase: phase) {
-                return (.active, timestampDate ?? lastDate)
-            }
+            let turnID = stringValue(payload["turn_id"])
+            records.append(
+                RolloutRecord(
+                    eventType: eventType,
+                    payload: payload,
+                    payloadType: stringValue(payload["type"]),
+                    phase: stringValue(payload["phase"]),
+                    turnID: turnID,
+                    date: (object["timestamp"] as? String).flatMap { self.timestampDate($0) }
+                )
+            )
         }
-        return (.unknown, lastDate)
+
+        let summaries = summarizeTurns(records)
+        let interestingTurns = summaries.filter { $0.isActive || $0.isCompleted }
+        guard let latestInterestingTurn = interestingTurns.max(by: { lhs, rhs in
+            lhs.lastDate < rhs.lastDate
+        }) else {
+            let lastDate = records.last?.date
+            return (.unknown, lastDate)
+        }
+
+        if latestInterestingTurn.isCompleted {
+            return (.finalResponse, latestInterestingTurn.lastDate)
+        }
+        if latestInterestingTurn.isActive {
+            return (.active, latestInterestingTurn.lastDate)
+        }
+
+        return (.unknown, latestInterestingTurn.lastDate)
+    }
+
+    private struct RolloutRecord {
+        let eventType: String
+        let payload: [String: Any]
+        let payloadType: String
+        let phase: String
+        let turnID: String
+        let date: Date?
+    }
+
+    private struct TurnSummary {
+        let turnID: String
+        var firstDate: Date
+        var lastDate: Date
+        var isActive: Bool
+        var isCompleted: Bool
+    }
+
+    private func summarizeTurns(_ records: [RolloutRecord]) -> [TurnSummary] {
+        var summaries: [String: TurnSummary] = [:]
+        var currentTurnID = ""
+
+        for record in records {
+            if record.eventType == "turn_context" || record.eventType == "task_started" {
+                currentTurnID = record.turnID.isEmpty ? currentTurnID : record.turnID
+            } else if currentTurnID.isEmpty, !record.turnID.isEmpty {
+                currentTurnID = record.turnID
+            }
+
+            let turnID = record.turnID.isEmpty ? currentTurnID : record.turnID
+            guard !turnID.isEmpty else { continue }
+
+            let date = record.date ?? summaries[turnID]?.lastDate ?? .distantPast
+            if summaries[turnID] == nil {
+                summaries[turnID] = TurnSummary(
+                    turnID: turnID,
+                    firstDate: date,
+                    lastDate: date,
+                    isActive: false,
+                    isCompleted: false
+                )
+            }
+
+            guard var summary = summaries[turnID] else { continue }
+            summary.firstDate = min(summary.firstDate, date)
+            summary.lastDate = max(summary.lastDate, date)
+
+            if isFinalResponseEvent(eventType: record.eventType, payload: record.payload, payloadType: record.payloadType, phase: record.phase)
+                || (record.eventType == "event_msg" && record.payloadType == "task_complete") {
+                summary.isCompleted = true
+            }
+
+            if isActivityEvent(eventType: record.eventType, payload: record.payload, payloadType: record.payloadType, phase: record.phase) {
+                summary.isActive = true
+            }
+
+            summaries[turnID] = summary
+        }
+
+        return summaries.values.sorted { lhs, rhs in
+            if lhs.lastDate == rhs.lastDate {
+                return lhs.firstDate < rhs.firstDate
+            }
+            return lhs.lastDate < rhs.lastDate
+        }
     }
 
     private func isFinalResponseEvent(eventType: String, payload: [String: Any], payloadType: String, phase: String) -> Bool {
         if phase == "final_answer" {
+            return true
+        }
+        if eventType == "task_complete" || payloadType == "task_complete" {
             return true
         }
         if eventType == "response_item", payloadType == "message", stringValue(payload["role"]) == "assistant" {

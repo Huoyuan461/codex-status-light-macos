@@ -47,10 +47,9 @@ struct StatusLightView: View {
                         .blur(radius: 0.4)
                 )
         }
-        .onAppear { flashing = true }
-        .onChange(of: state) { _, _ in
-            flashing = false
-            flashing = true
+        .onAppear { flashing = state == .running }
+        .onChange(of: state) { _, newState in
+            flashing = newState == .running
         }
         .animation(.easeOut(duration: 0.24), value: startupPhase)
         .accessibilityLabel(state.title)
@@ -59,21 +58,48 @@ struct StatusLightView: View {
 
     private func lamp(_ lampState: CodexActivityState, color: Color, index: Int) -> some View {
         let isActive = state == lampState
-        let startupInProgress = startupPhase < 4
-        let startupLit = startupInProgress && startupPhase > index
+        let startupInProgress = startupPhase > 0 && startupPhase < 4
+        let startupLit = startupInProgress && startupPhase == index + 1
+        let shouldShow = startupInProgress ? startupLit : isActive && state != .idle
+        let dimOpacity: Double = {
+            guard !isActive else {
+                switch state {
+                case .running:
+                    return flashing ? 0.96 : 0.42
+                case .disconnected, .completed:
+                    return 0.96
+                case .idle:
+                    return 0.18
+                }
+            }
+            if state == .idle { return 0.16 }
+            return 0.14
+        }()
+        let startupOpacity: Double = startupLit ? 0.96 : 0.16
+        let steadyOpacity: Double = {
+            guard state != .idle, isActive else { return dimOpacity }
+            switch state {
+            case .running:
+                return flashing ? 0.96 : 0.42
+            case .disconnected, .completed:
+                return 0.96
+            case .idle:
+                return 0
+            }
+        }()
         return Circle()
-            .fill(isActive ? color : color.opacity(state == .idle ? 0.12 : 0.18))
+            .fill(color)
             .frame(width: size, height: size)
-            .opacity(startupInProgress ? (startupLit ? 0.96 : 0.10) : (isActive && animated ? (flashing ? 0.96 : 0.36) : 0.92))
-            .scaleEffect(startupInProgress ? (startupLit ? 1.0 : 0.86) : (isActive ? 1.0 : 0.98))
-            .shadow(color: (startupInProgress || isActive) ? color.opacity(0.40) : .clear, radius: startupInProgress ? 2.5 : 1.4)
-            .blur(radius: startupInProgress && !startupLit ? 0.4 : 0)
+            .opacity(startupInProgress ? startupOpacity : (animated ? steadyOpacity : (isActive ? 0.96 : dimOpacity)))
+            .scaleEffect(startupInProgress ? (startupLit ? 1.0 : 0.80) : (isActive ? 1.0 : 0.94))
+            .shadow(color: shouldShow ? color.opacity(0.42) : .clear, radius: startupInProgress ? 3.2 : (isActive ? 1.8 : 0))
+            .blur(radius: startupInProgress && !startupLit ? 0.5 : 0)
             .animation(
                 isActive && animated
-                    ? .easeInOut(duration: 0.62).repeatForever(autoreverses: true)
+                    ? .easeInOut(duration: 0.9).repeatForever(autoreverses: true)
                     : .default,
                 value: flashing
             )
-            .animation(.easeOut(duration: 0.26), value: startupPhase)
+            .animation(.easeOut(duration: 0.30), value: startupPhase)
     }
 }

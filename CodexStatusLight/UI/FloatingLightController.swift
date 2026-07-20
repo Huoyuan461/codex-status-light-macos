@@ -12,19 +12,26 @@ final class FloatingLightController: NSWindowController, NSWindowDelegate {
         self.state = state
         self.mode = mode
         self.startupPhase = startupPhase
-        let window = NSPanel(
+        let window = NSWindow(
             contentRect: NSRect(x: 0, y: 0, width: 112, height: 44),
-            styleMask: [.borderless, .nonactivatingPanel],
+            styleMask: [.titled, .fullSizeContentView, .closable],
             backing: .buffered,
             defer: false
         )
         super.init(window: window)
+        window.isReleasedWhenClosed = false
         window.isOpaque = false
         window.backgroundColor = .clear
         window.hasShadow = true
-        window.level = .statusBar
+        window.titleVisibility = .hidden
+        window.titlebarAppearsTransparent = true
+        window.standardWindowButton(.closeButton)?.isHidden = true
+        window.standardWindowButton(.miniaturizeButton)?.isHidden = true
+        window.standardWindowButton(.zoomButton)?.isHidden = true
+        window.level = .floating
         window.collectionBehavior = [.canJoinAllSpaces, .stationary, .fullScreenAuxiliary]
         window.isMovableByWindowBackground = mode == .desktop
+        window.hidesOnDeactivate = false
         window.contentView = NSHostingView(rootView: FloatingLightContent(state: state, startupPhase: startupPhase) { [weak self] in
             self?.hide()
         })
@@ -34,7 +41,12 @@ final class FloatingLightController: NSWindowController, NSWindowDelegate {
 
     required init?(coder: NSCoder) { nil }
 
-    func show() { window?.orderFrontRegardless() }
+    func show() {
+        window?.alphaValue = 1
+        window?.orderFrontRegardless()
+        window?.makeKeyAndOrderFront(nil)
+        NSApplication.shared.activate(ignoringOtherApps: true)
+    }
     func hide() { window?.orderOut(nil) }
 
     func update(state: CodexActivityState) {
@@ -64,10 +76,15 @@ final class FloatingLightController: NSWindowController, NSWindowDelegate {
     private func placeWindow() {
         guard let window else { return }
         if mode == .desktop, let stored = UserDefaults.standard.string(forKey: Self.positionKey) {
-            window.setFrameOrigin(NSPointFromString(stored))
-            return
+            let origin = NSPointFromString(stored)
+            let proposedFrame = NSRect(origin: origin, size: window.frame.size)
+            if let screen = screenContaining(frame: proposedFrame) {
+                let clampedOrigin = clamp(origin: origin, into: screen.visibleFrame, size: window.frame.size)
+                window.setFrameOrigin(clampedOrigin)
+                return
+            }
         }
-        guard let screen = NSScreen.main else { return }
+        guard let screen = NSScreen.main ?? NSScreen.screens.first else { return }
         let visible = screen.visibleFrame
         let topInset = max(0, screen.frame.maxY - visible.maxY)
         let x: CGFloat
@@ -80,6 +97,21 @@ final class FloatingLightController: NSWindowController, NSWindowDelegate {
             y = visible.maxY - window.frame.height - 24
         }
         window.setFrameOrigin(NSPoint(x: x, y: y))
+    }
+
+    private func screenContaining(frame: NSRect) -> NSScreen? {
+        NSScreen.screens.first { $0.frame.intersects(frame) || $0.visibleFrame.intersects(frame) }
+    }
+
+    private func clamp(origin: NSPoint, into visibleFrame: NSRect, size: NSSize) -> NSPoint {
+        let minX = visibleFrame.minX + 8
+        let maxX = max(minX, visibleFrame.maxX - size.width - 8)
+        let minY = visibleFrame.minY + 8
+        let maxY = max(minY, visibleFrame.maxY - size.height - 8)
+        return NSPoint(
+            x: min(max(origin.x, minX), maxX),
+            y: min(max(origin.y, minY), maxY)
+        )
     }
 
     private func refreshContent() {
