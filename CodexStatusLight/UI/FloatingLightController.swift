@@ -126,6 +126,7 @@ private struct FloatingLightContent: View {
     let state: CodexActivityState
     var startupPhase: Int = 4
     let closeAction: () -> Void
+    @State private var isHovering = false
 
     var body: some View {
         ZStack(alignment: .topTrailing) {
@@ -135,14 +136,25 @@ private struct FloatingLightContent: View {
 
             Button(action: closeAction) {
                 Image(systemName: "xmark")
-                    .font(.system(size: 8, weight: .semibold))
-                    .foregroundStyle(.white.opacity(0.86))
-                    .padding(5)
-                    .background(.black.opacity(0.28), in: Circle())
+                    .font(.system(size: 7, weight: .semibold))
+                    .foregroundStyle(.white.opacity(isHovering ? 0.90 : 0.20))
+                    .padding(4)
+                    .background(.black.opacity(isHovering ? 0.30 : 0.08), in: Circle())
+                    .overlay(
+                        Circle()
+                            .strokeBorder(.white.opacity(isHovering ? 0.14 : 0.04), lineWidth: 1)
+                    )
             }
             .buttonStyle(.plain)
+            .opacity(isHovering ? 1 : 0.35)
+            .scaleEffect(isHovering ? 1 : 0.88)
             .padding(3)
             .accessibilityLabel("关闭插件")
+        }
+        .onHover { hovering in
+            withAnimation(.easeOut(duration: 0.18)) {
+                isHovering = hovering
+            }
         }
     }
 }
