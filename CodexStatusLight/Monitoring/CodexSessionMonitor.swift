@@ -224,9 +224,6 @@ actor CodexSessionMonitor {
         if eventType == "response_item", payloadType == "message", stringValue(payload["role"]) == "assistant" {
             return phase == "final_answer"
         }
-        if eventType == "response_item", payload["completed_at"] != nil {
-            return true
-        }
         return false
     }
 
