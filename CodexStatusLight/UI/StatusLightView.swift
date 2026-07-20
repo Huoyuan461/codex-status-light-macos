@@ -47,9 +47,9 @@ struct StatusLightView: View {
                         .blur(radius: 0.4)
                 )
         }
-        .onAppear { flashing = state == .running }
+        .onAppear { flashing = state != .idle }
         .onChange(of: state) { _, newState in
-            flashing = newState == .running
+            flashing = newState != .idle
         }
         .animation(.easeOut(duration: 0.24), value: startupPhase)
         .accessibilityLabel(state.title)
@@ -67,7 +67,7 @@ struct StatusLightView: View {
                 case .running:
                     return flashing ? 0.96 : 0.42
                 case .disconnected, .completed:
-                    return 0.96
+                    return flashing ? 0.96 : 0.34
                 case .idle:
                     return 0.18
                 }
@@ -82,7 +82,7 @@ struct StatusLightView: View {
             case .running:
                 return flashing ? 0.96 : 0.42
             case .disconnected, .completed:
-                return 0.96
+                return flashing ? 0.96 : 0.34
             case .idle:
                 return 0
             }
