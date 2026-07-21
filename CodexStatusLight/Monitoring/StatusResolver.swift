@@ -18,7 +18,7 @@ struct StatusResolver {
             if !processIsRunning || !networkIsAvailable {
                 return previousState == .running ? .disconnected : .idle
             }
-            return .idle
+            return .running
         }
 
         if snapshot.eventState == .finalResponse {
@@ -26,8 +26,9 @@ struct StatusResolver {
         }
 
         let silence = now.timeIntervalSince(snapshot.lastActivityAt)
+        let environmentIsHealthy = processIsRunning && networkIsAvailable
 
-        if !processIsRunning || !networkIsAvailable {
+        if !environmentIsHealthy {
             return previousState == .running || snapshot.eventState == .active ? .disconnected : .idle
         }
 
@@ -41,7 +42,7 @@ struct StatusResolver {
 
         if snapshot.eventState == .unknown {
             if silence <= timeout {
-                return previousState == .running ? .running : .idle
+                return .running
             }
             return previousState == .running ? .disconnected : .idle
         }

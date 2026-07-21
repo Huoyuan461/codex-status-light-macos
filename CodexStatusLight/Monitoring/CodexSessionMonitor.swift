@@ -7,10 +7,19 @@ actor CodexSessionMonitor {
 
     func latestSession(in directory: URL) -> CodexSessionSnapshot? {
         codexDirectory = directory
-        if let row = latestSessionFromDatabase(), let snapshot = snapshot(from: row) {
-            return snapshot
+        let databaseSnapshot = latestSessionFromDatabase().flatMap(snapshot(from:))
+        let fileSnapshot = latestSessionFromFiles()
+
+        switch (databaseSnapshot, fileSnapshot) {
+        case let (lhs?, rhs?):
+            return preferredSnapshot(lhs, rhs)
+        case let (lhs?, nil):
+            return lhs
+        case let (nil, rhs?):
+            return rhs
+        case (nil, nil):
+            return nil
         }
-        return latestSessionFromFiles()
     }
 
     private struct SessionRow {
@@ -116,7 +125,7 @@ actor CodexSessionMonitor {
                   let object = try? JSONSerialization.jsonObject(with: lineData) as? [String: Any] else { continue }
             let eventType = object["type"] as? String ?? ""
             let payload = object["payload"] as? [String: Any] ?? [:]
-            let turnID = stringValue(payload["turn_id"])
+            let turnID = extractedTurnID(from: object, payload: payload)
             records.append(
                 RolloutRecord(
                     eventType: eventType,
@@ -250,6 +259,35 @@ actor CodexSessionMonitor {
         (try? url.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate) ?? .distantPast
     }
 
+    private func preferredSnapshot(_ lhs: CodexSessionSnapshot, _ rhs: CodexSessionSnapshot) -> CodexSessionSnapshot {
+        let lhsPriority = snapshotPriority(lhs)
+        let rhsPriority = snapshotPriority(rhs)
+        if lhsPriority != rhsPriority {
+            return lhsPriority > rhsPriority ? lhs : rhs
+        }
+
+        if lhs.lastActivityAt != rhs.lastActivityAt {
+            return lhs.lastActivityAt > rhs.lastActivityAt ? lhs : rhs
+        }
+
+        if lhs.startedAt != rhs.startedAt {
+            return lhs.startedAt > rhs.startedAt ? lhs : rhs
+        }
+
+        return lhs.rolloutPath.count >= rhs.rolloutPath.count ? lhs : rhs
+    }
+
+    private func snapshotPriority(_ snapshot: CodexSessionSnapshot) -> Int {
+        switch snapshot.eventState {
+        case .active:
+            return 3
+        case .finalResponse:
+            return 2
+        case .unknown:
+            return 1
+        }
+    }
+
     private func latestRolloutFile(in directory: URL) -> URL? {
         guard let enumerator = fileManager.enumerator(
             at: directory,
@@ -273,6 +311,47 @@ actor CodexSessionMonitor {
 
     private func stringValue(_ value: Any?) -> String {
         value as? String ?? ""
+    }
+
+    private func extractedTurnID(from object: [String: Any], payload: [String: Any]) -> String {
+        let directCandidates: [Any?] = [
+            payload["turn_id"],
+            payload["turnID"],
+            payload["turnId"],
+            object["turn_id"],
+            object["turnID"],
+            object["turnId"]
+        ]
+        for candidate in directCandidates {
+            let value = stringValue(candidate)
+            if !value.isEmpty { return value }
+        }
+
+        if let metadata = payload["internal_chat_message_metadata_passthrough"] as? [String: Any] {
+            let metaCandidates: [Any?] = [
+                metadata["turn_id"],
+                metadata["turnID"],
+                metadata["turnId"]
+            ]
+            for candidate in metaCandidates {
+                let value = stringValue(candidate)
+                if !value.isEmpty { return value }
+            }
+        }
+
+        if let metadata = object["internal_chat_message_metadata_passthrough"] as? [String: Any] {
+            let metaCandidates: [Any?] = [
+                metadata["turn_id"],
+                metadata["turnID"],
+                metadata["turnId"]
+            ]
+            for candidate in metaCandidates {
+                let value = stringValue(candidate)
+                if !value.isEmpty { return value }
+            }
+        }
+
+        return ""
     }
 
     private func timestampDate(_ value: String) -> Date? {
