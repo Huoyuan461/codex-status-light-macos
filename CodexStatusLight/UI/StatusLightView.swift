@@ -29,7 +29,7 @@ struct StatusLightView: View {
                 )
                 .overlay(
                     Capsule()
-                        .strokeBorder(.white.opacity(0.08), lineWidth: 1)
+                        .strokeBorder(.white.opacity(0.12), lineWidth: 1)
                 )
                 .overlay(
                     Capsule()
@@ -59,43 +59,29 @@ struct StatusLightView: View {
         let isActive = state == lampState
         let startupInProgress = startupPhase > 0 && startupPhase < 4
         let startupLit = startupInProgress && startupPhase == index + 1
-        let shouldShow = startupInProgress ? startupLit : isActive && state != .idle
-        let dimOpacity: Double = {
-            guard !isActive else {
-                switch state {
-                case .running:
-                    return blinkPhase ? 0.96 : 0.42
-                case .disconnected, .completed:
-                    return blinkPhase ? 0.96 : 0.34
-                case .idle:
-                    return 0.18
-                }
-            }
-            if state == .idle { return 0.16 }
-            return 0.14
-        }()
-        let startupOpacity: Double = startupLit ? 0.96 : 0.16
-        let steadyOpacity: Double = {
-            guard state != .idle, isActive else { return dimOpacity }
+        let offOpacity: Double = state == .idle ? 0.24 : 0.16
+        let activeOpacity: Double = {
+            guard isActive else { return offOpacity }
             switch state {
             case .running:
-                return blinkPhase ? 0.96 : 0.42
-            case .disconnected, .completed:
-                return blinkPhase ? 0.96 : 0.34
+                return blinkPhase ? 0.98 : 0.46
+            case .completed, .disconnected:
+                return blinkPhase ? 0.96 : 0.38
             case .idle:
-                return 0
+                return 0.0
             }
         }()
+        let startupOpacity: Double = startupLit ? 0.98 : 0.20
         return Circle()
             .fill(color)
             .frame(width: size, height: size)
-            .opacity(startupInProgress ? startupOpacity : (animated ? steadyOpacity : (isActive ? 0.96 : dimOpacity)))
+            .opacity(startupInProgress ? startupOpacity : (animated ? activeOpacity : (isActive ? 0.96 : offOpacity)))
             .scaleEffect(startupInProgress ? (startupLit ? 1.0 : 0.80) : (isActive ? 1.0 : 0.94))
-            .shadow(color: shouldShow ? color.opacity(0.42) : .clear, radius: startupInProgress ? 3.2 : (isActive ? 1.8 : 0))
+            .shadow(color: (startupInProgress || isActive) ? color.opacity(0.45) : color.opacity(0.16), radius: startupInProgress ? 3.6 : (isActive ? 2.2 : 0.8))
             .blur(radius: startupInProgress && !startupLit ? 0.5 : 0)
             .animation(
                 isActive && animated
-                    ? .easeInOut(duration: 0.48).repeatForever(autoreverses: true)
+                    ? .easeInOut(duration: state == .running ? 0.34 : 0.44).repeatForever(autoreverses: true)
                     : .default,
                 value: blinkPhase
             )
@@ -109,11 +95,11 @@ struct StatusLightView: View {
     private func blinkInterval(for state: CodexActivityState) -> Duration {
         switch state {
         case .running:
-            return .milliseconds(420)
+            return .milliseconds(300)
         case .disconnected:
-            return .milliseconds(520)
+            return .milliseconds(420)
         case .completed:
-            return .milliseconds(560)
+            return .milliseconds(480)
         case .idle:
             return .milliseconds(0)
         }

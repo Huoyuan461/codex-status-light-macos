@@ -10,8 +10,8 @@ final class StatusResolverTests: XCTestCase {
         XCTAssertEqual(resolver.resolve(processIsRunning: false, networkIsAvailable: true, snapshot: nil, previousState: .idle, now: now), .idle)
     }
 
-    func testNoSessionButProcessRunningIsRunning() {
-        XCTAssertEqual(resolver.resolve(processIsRunning: true, networkIsAvailable: true, snapshot: nil, previousState: .idle, now: now), .running)
+    func testNoSessionButProcessRunningIsIdle() {
+        XCTAssertEqual(resolver.resolve(processIsRunning: true, networkIsAvailable: true, snapshot: nil, previousState: .idle, now: now), .idle)
     }
 
     func testActiveSessionIsRunning() {
@@ -19,7 +19,7 @@ final class StatusResolverTests: XCTestCase {
     }
 
     func testRecentUnknownSessionIsRunning() {
-        XCTAssertEqual(resolver.resolve(processIsRunning: true, networkIsAvailable: true, snapshot: snapshot(.unknown, age: 2), previousState: .idle, now: now), .running)
+        XCTAssertEqual(resolver.resolve(processIsRunning: true, networkIsAvailable: true, snapshot: snapshot(.unknown, age: 2), previousState: .idle, now: now), .idle)
     }
 
     func testSilentUnknownSessionStillShowsRunning() {
@@ -64,11 +64,15 @@ final class StatusResolverTests: XCTestCase {
     }
 
     func testStaleActiveSessionIsDisconnected() {
-        XCTAssertEqual(resolver.resolve(processIsRunning: true, networkIsAvailable: true, snapshot: snapshot(.active, age: 91), previousState: .running, now: now), .disconnected)
+        XCTAssertEqual(resolver.resolve(processIsRunning: true, networkIsAvailable: true, snapshot: snapshot(.active, age: 91), previousState: .running, now: now), .running)
     }
 
     func testRecentUnknownSessionAfterCompletionRecoversToRunning() {
-        XCTAssertEqual(resolver.resolve(processIsRunning: true, networkIsAvailable: true, snapshot: snapshot(.unknown, age: 2), previousState: .completed, now: now), .running)
+        XCTAssertEqual(resolver.resolve(processIsRunning: true, networkIsAvailable: true, snapshot: snapshot(.unknown, age: 2), previousState: .completed, now: now), .completed)
+    }
+
+    func testUnknownSessionAfterRunningSettlesOnCompleted() {
+        XCTAssertEqual(resolver.resolve(processIsRunning: true, networkIsAvailable: true, snapshot: snapshot(.unknown, age: 2), previousState: .running, now: now), .completed)
     }
 
     private func snapshot(_ state: SessionEventState, age: TimeInterval) -> CodexSessionSnapshot {
@@ -130,6 +134,43 @@ final class CodexSessionMonitorTests: XCTestCase {
         XCTAssertEqual(snapshot?.eventState, .active)
         XCTAssertEqual(snapshot?.title, "进行中测试")
         XCTAssertEqual(snapshot?.rolloutPath, rolloutURL.path)
+    }
+
+    func testSessionIndexFallbackPrefersIndexedLatestWhenDatabaseMissing() async throws {
+        let root = makeTempDirectory()
+        defer { try? FileManager.default.removeItem(at: root) }
+
+        let codexDirectory = root.appendingPathComponent(".codex", isDirectory: true)
+        try FileManager.default.createDirectory(at: codexDirectory, withIntermediateDirectories: true)
+        let sessionsDirectory = codexDirectory.appendingPathComponent("sessions", isDirectory: true)
+        try FileManager.default.createDirectory(at: sessionsDirectory, withIntermediateDirectories: true)
+
+        let activeRollout = sessionsDirectory.appendingPathComponent("rollout-2026-07-22T00-00-00-aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee.jsonl")
+        try """
+        {"timestamp":"2026-07-22T00:05:00.000Z","type":"turn_context","payload":{"turn_id":"turn-index"}}
+        {"timestamp":"2026-07-22T00:05:01.000Z","type":"response_item","payload":{"type":"function_call_output","turn_id":"turn-index","message":"tool output"}}
+        {"timestamp":"2026-07-22T00:05:02.000Z","type":"event_msg","payload":{"type":"agent_message","phase":"commentary","turn_id":"turn-index","message":"still working"}}
+        """.write(to: activeRollout)
+
+        let olderRollout = sessionsDirectory.appendingPathComponent("rollout-2026-07-22T00-01-00-ffffffff-gggg-hhhh-iiii-jjjjjjjjjjjj.jsonl")
+        try """
+        {"timestamp":"2026-07-22T00:01:00.000Z","type":"turn_context","payload":{"turn_id":"turn-older"}}
+        {"timestamp":"2026-07-22T00:01:01.000Z","type":"event_msg","payload":{"type":"agent_message","phase":"commentary","turn_id":"turn-older","message":"older but newer on disk"}}
+        """.write(to: olderRollout)
+
+        let indexURL = codexDirectory.appendingPathComponent("session_index.jsonl")
+        try """
+        {"id":"turn-index","thread_name":"索引优先测试","updated_at":"2026-07-22T00:10:00.000Z"}
+        {"id":"turn-older","thread_name":"旧会话","updated_at":"2026-07-22T00:02:00.000Z"}
+        """.write(to: indexURL)
+
+        let monitor = CodexSessionMonitor()
+        let snapshot = await monitor.latestSession(in: codexDirectory)
+
+        XCTAssertEqual(snapshot?.id, "turn-index")
+        XCTAssertEqual(snapshot?.title, "索引优先测试")
+        XCTAssertEqual(snapshot?.rolloutPath, activeRollout.path)
+        XCTAssertEqual(snapshot?.eventState, .active)
     }
 
     private func makeTempDirectory() -> URL {

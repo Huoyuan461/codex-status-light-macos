@@ -8,18 +8,68 @@ actor CodexSessionMonitor {
     func latestSession(in directory: URL) -> CodexSessionSnapshot? {
         codexDirectory = directory
         let databaseSnapshot = latestSessionFromDatabase().flatMap(snapshot(from:))
+        let indexSnapshot = latestSessionFromIndex().flatMap(snapshot(from:))
         let fileSnapshot = latestSessionFromFiles()
 
-        switch (databaseSnapshot, fileSnapshot) {
-        case let (lhs?, rhs?):
-            return preferredSnapshot(lhs, rhs)
-        case let (lhs?, nil):
-            return lhs
-        case let (nil, rhs?):
-            return rhs
-        case (nil, nil):
+        let snapshots = [databaseSnapshot, fileSnapshot, indexSnapshot].compactMap { $0 }
+        guard let first = snapshots.first else { return nil }
+        return snapshots.dropFirst().reduce(first, preferredSnapshot(_:_:))
+    }
+
+    private struct SessionIndexRow {
+        let id: String
+        let title: String
+        let updatedAt: Date
+    }
+
+    private func latestSessionFromIndex() -> SessionRow? {
+        guard let row = newestSessionIndexRow() else { return nil }
+        guard let rolloutURL = rolloutFile(for: row.id) else { return nil }
+        return SessionRow(
+            id: row.id,
+            title: row.title,
+            cwd: "",
+            rolloutPath: rolloutURL.path,
+            createdAt: row.updatedAt
+        )
+    }
+
+    private func newestSessionIndexRow() -> SessionIndexRow? {
+        guard let codexDirectory else { return nil }
+        let indexURL = codexDirectory.appendingPathComponent("session_index.jsonl")
+        guard fileManager.fileExists(atPath: indexURL.path),
+              let data = try? Data(contentsOf: indexURL, options: [.mappedIfSafe]),
+              !data.isEmpty else {
             return nil
         }
+
+        let lines = String(decoding: data, as: UTF8.self)
+            .split(separator: "\n", omittingEmptySubsequences: true)
+
+        var newest: SessionIndexRow?
+        for line in lines {
+            guard let lineData = line.data(using: .utf8),
+                  let object = try? JSONSerialization.jsonObject(with: lineData) as? [String: Any] else { continue }
+            let id = stringValue(object["id"])
+            let title = stringValue(object["thread_name"])
+            guard !id.isEmpty,
+                  let updatedAt = iso8601Date(stringValue(object["updated_at"])) else {
+                continue
+            }
+            let candidate = SessionIndexRow(
+                id: id,
+                title: title.isEmpty ? "最近的 Codex 任务" : title,
+                updatedAt: updatedAt
+            )
+            if let currentNewest = newest {
+                if candidate.updatedAt > currentNewest.updatedAt {
+                    newest = candidate
+                }
+            } else {
+                newest = candidate
+            }
+        }
+        return newest
     }
 
     private struct SessionRow {
@@ -273,12 +323,6 @@ actor CodexSessionMonitor {
     }
 
     private func preferredSnapshot(_ lhs: CodexSessionSnapshot, _ rhs: CodexSessionSnapshot) -> CodexSessionSnapshot {
-        let lhsPriority = snapshotPriority(lhs)
-        let rhsPriority = snapshotPriority(rhs)
-        if lhsPriority != rhsPriority {
-            return lhsPriority > rhsPriority ? lhs : rhs
-        }
-
         if lhs.lastActivityAt != rhs.lastActivityAt {
             return lhs.lastActivityAt > rhs.lastActivityAt ? lhs : rhs
         }
@@ -287,15 +331,21 @@ actor CodexSessionMonitor {
             return lhs.startedAt > rhs.startedAt ? lhs : rhs
         }
 
+        let lhsPriority = snapshotPriority(lhs)
+        let rhsPriority = snapshotPriority(rhs)
+        if lhsPriority != rhsPriority {
+            return lhsPriority > rhsPriority ? lhs : rhs
+        }
+
         return lhs.rolloutPath.count >= rhs.rolloutPath.count ? lhs : rhs
     }
 
     private func snapshotPriority(_ snapshot: CodexSessionSnapshot) -> Int {
         switch snapshot.eventState {
         case .active:
-            return 3
-        case .finalResponse:
             return 2
+        case .finalResponse:
+            return 3
         case .unknown:
             return 1
         }
@@ -317,6 +367,53 @@ actor CodexSessionMonitor {
         return newest
     }
 
+    private func rolloutFile(for sessionID: String) -> URL? {
+        guard let codexDirectory else { return nil }
+        guard let enumerator = fileManager.enumerator(
+            at: codexDirectory,
+            includingPropertiesForKeys: [.contentModificationDateKey, .isRegularFileKey],
+            options: [.skipsHiddenFiles]
+        ) else { return nil }
+
+        var matches: [URL] = []
+        for case let url as URL in enumerator where url.pathExtension == "jsonl" && url.lastPathComponent.contains(sessionID) && url.lastPathComponent.hasPrefix("rollout") {
+            matches.append(url)
+        }
+        if let best = matches.max(by: { modificationDate($0) < modificationDate($1) }) {
+            return best
+        }
+
+        let searchRoots = [
+            codexDirectory.appendingPathComponent("sessions", isDirectory: true),
+            codexDirectory.appendingPathComponent("archived_sessions", isDirectory: true)
+        ]
+
+        for root in searchRoots {
+            guard fileManager.fileExists(atPath: root.path) else { continue }
+            guard let searchEnumerator = fileManager.enumerator(
+                at: root,
+                includingPropertiesForKeys: [.contentModificationDateKey, .isRegularFileKey],
+                options: [.skipsHiddenFiles]
+            ) else { continue }
+
+            var contentMatches: [URL] = []
+            for case let url as URL in searchEnumerator where url.pathExtension == "jsonl" && url.lastPathComponent != "session_index.jsonl" {
+                guard let data = try? Data(contentsOf: url, options: [.mappedIfSafe]),
+                      !data.isEmpty else { continue }
+                let content = String(decoding: data.suffix(256 * 1024), as: UTF8.self)
+                if content.contains(sessionID) {
+                    contentMatches.append(url)
+                }
+            }
+
+            if let best = contentMatches.max(by: { modificationDate($0) < modificationDate($1) }) {
+                return best
+            }
+        }
+
+        return nil
+    }
+
     private func string(_ statement: OpaquePointer, column: Int32) -> String {
         guard let bytes = sqlite3_column_text(statement, column) else { return "" }
         return String(cString: bytes)
@@ -324,6 +421,12 @@ actor CodexSessionMonitor {
 
     private func stringValue(_ value: Any?) -> String {
         value as? String ?? ""
+    }
+
+    private func iso8601Date(_ value: String) -> Date? {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return formatter.date(from: value)
     }
 
     private func extractedTurnID(from object: [String: Any], payload: [String: Any]) -> String {
