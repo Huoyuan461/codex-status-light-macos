@@ -18,6 +18,8 @@ Routes:
 
 Publish the folder root to any HTTPS static host and use the final public URLs in App Store Connect.
 
+For a clean local export of the site, run `scripts/prepare-website-deploy.sh`.
+
 Notes:
 
 - The site includes `.nojekyll` so GitHub Pages will not rewrite the route structure.
