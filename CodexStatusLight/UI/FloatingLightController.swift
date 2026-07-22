@@ -6,6 +6,7 @@ final class FloatingLightController: NSWindowController, NSWindowDelegate {
     private var state: CodexActivityState
     private var mode: DisplayMode
     private var startupPhase: Int
+    private var hostingView: NSHostingView<FloatingLightContent>?
     private static let positionKey = "floatingLightOrigin"
 
     init(state: CodexActivityState, mode: DisplayMode, startupPhase: Int) {
@@ -32,9 +33,11 @@ final class FloatingLightController: NSWindowController, NSWindowDelegate {
         window.collectionBehavior = [.canJoinAllSpaces, .stationary, .fullScreenAuxiliary]
         window.isMovableByWindowBackground = mode == .desktop
         window.hidesOnDeactivate = false
-        window.contentView = NSHostingView(rootView: FloatingLightContent(state: state, startupPhase: startupPhase) { [weak self] in
+        let hostingView = NSHostingView(rootView: FloatingLightContent(state: state, startupPhase: startupPhase) { [weak self] in
             self?.hide()
         })
+        self.hostingView = hostingView
+        window.contentView = hostingView
         window.delegate = self
         placeWindow()
     }
@@ -115,10 +118,9 @@ final class FloatingLightController: NSWindowController, NSWindowDelegate {
     }
 
     private func refreshContent() {
-        guard let window else { return }
-        window.contentView = NSHostingView(rootView: FloatingLightContent(state: state, startupPhase: startupPhase) { [weak self] in
+        hostingView?.rootView = FloatingLightContent(state: state, startupPhase: startupPhase) { [weak self] in
             self?.hide()
-        })
+        }
     }
 }
 
