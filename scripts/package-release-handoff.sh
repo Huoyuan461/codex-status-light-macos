@@ -34,6 +34,9 @@ cp "$ROOT_DIR/商城上架/APP_STORE_RELEASE_CHECKLIST.md" "$HANDFOFF_DIR/"
 cp "$ROOT_DIR/商城上架/RELEASE_RUNBOOK.md" "$HANDFOFF_DIR/"
 cp "$ROOT_DIR/website/README.md" "$HANDFOFF_DIR/WEBSITE_README.md"
 cp "$ROOT_DIR/website/DEPLOYMENT.md" "$HANDFOFF_DIR/WEBSITE_DEPLOYMENT.md"
+if [[ -f "$ROOT_DIR/Build/release-readiness-report.txt" ]]; then
+  cp "$ROOT_DIR/Build/release-readiness-report.txt" "$HANDFOFF_DIR/"
+fi
 
 cat > "$HANDFOFF_DIR/HANDOFF.md" <<EOF
 # Codex Status Light Release Handoff
@@ -47,6 +50,7 @@ Current verified status:
 - Website support and privacy pages prepared for HTTPS hosting.
 - Website zip bundle ready at: $BUILD_DIR/codexlight-website.zip
 - App Store Connect upload still requires an authenticated session on the local machine.
+- Release readiness report is included if it was generated before this bundle.
 
 Next actions:
 
