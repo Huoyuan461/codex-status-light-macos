@@ -15,6 +15,7 @@ Routes:
 - `/` landing page
 - `/support/` support page
 - `/privacy/` privacy policy
+- `/release/` release overview
 
 Publish the folder root to any HTTPS static host and use the final public URLs in App Store Connect.
 

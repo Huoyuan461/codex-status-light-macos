@@ -11,6 +11,7 @@ Recommended structure after deploy:
 - `https://codexlight.asia/`
 - `https://codexlight.asia/support/`
 - `https://codexlight.asia/privacy/`
+- `https://codexlight.asia/release/`
 
 Two practical options:
 
