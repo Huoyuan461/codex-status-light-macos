@@ -19,6 +19,7 @@ Routes:
 Publish the folder root to any HTTPS static host and use the final public URLs in App Store Connect.
 
 For a clean local export of the site, run `scripts/prepare-website-deploy.sh`.
+For a handoff-ready zip bundle, run `scripts/package-website-zip.sh`.
 
 Notes:
 

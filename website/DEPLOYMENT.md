@@ -21,6 +21,7 @@ Two practical options:
    - See `GITHUB_PAGES_SETUP.md` for the DNS records GitHub Pages documents for apex domains.
    - Use the Pages URL as the App Store support and privacy URLs.
    - To generate a clean upload folder locally, run `scripts/prepare-website-deploy.sh`.
+   - To generate a zip bundle for handoff or upload, run `scripts/package-website-zip.sh`.
 
 2. Netlify
    - Drag the `website/` folder into Netlify or connect a repo.
