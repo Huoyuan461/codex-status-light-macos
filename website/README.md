@@ -21,6 +21,7 @@ Publish the folder root to any HTTPS static host and use the final public URLs i
 For a clean local export of the site, run `scripts/prepare-website-deploy.sh`.
 For a handoff-ready zip bundle, run `scripts/package-website-zip.sh`.
 You can also double-click `一键打包网站发布.command` to create the same zip and open the Build folder.
+For a full release handoff bundle, run `scripts/package-release-handoff.sh`.
 
 Notes:
 

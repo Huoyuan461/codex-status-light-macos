@@ -35,3 +35,7 @@ This is the shortest safe path from the current workspace to a submission-ready 
 
 8. Submit for review.
    - Put the review notes from `APP_STORE_CONNECT_FILL_IN.md` into the submission notes.
+
+Optional handoff package:
+
+- Run `scripts/package-release-handoff.sh` to generate a single folder with the website bundle and all release documents.
