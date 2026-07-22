@@ -133,14 +133,15 @@ final class CodexStatusModel {
             fileMonitor.stop()
             newSnapshot = nil
         }
+        let effectiveSnapshot = newSnapshot ?? (state == .idle ? nil : snapshot)
         let shouldCheckProcess = Int(Date().timeIntervalSince1970) % 2 == 0 || !processIsRunning
         let running = shouldCheckProcess ? processMonitor.isCodexAppServerRunning() : processIsRunning
         processIsRunning = running
-        snapshot = newSnapshot
+        snapshot = effectiveSnapshot
         state = resolver.resolve(
             processIsRunning: running,
             networkIsAvailable: networkMonitor.isNetworkAvailable,
-            snapshot: newSnapshot,
+            snapshot: effectiveSnapshot,
             previousState: state
         )
         hasCodexDirectoryAccess = directoryAccess.resolvedDirectoryURL() != nil
