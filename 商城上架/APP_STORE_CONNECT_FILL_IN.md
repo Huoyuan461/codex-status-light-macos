@@ -30,8 +30,8 @@ App Privacy:
 
 Review notes:
 
-- The app requires the user to choose the local `.codex` folder on first launch.
-- The granted permission is read-only and is used only to inspect local Codex session JSONL and SQLite state files.
+- The app auto-detects the local `~/.codex` folder on launch and falls back to a manual chooser only if auto-detection fails.
+- Any granted permission is read-only and is used only to inspect local Codex session JSONL and SQLite state files.
 - If Codex is not installed on the review machine, reviewers can still validate the onboarding flow, display mode selection, icon, and idle state.
 
 Submission assets:

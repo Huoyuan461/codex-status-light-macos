@@ -19,5 +19,5 @@ rm -rf "$TARGET_APP"
 /usr/bin/codesign --force --deep --sign - "$TARGET_APP"
 /usr/bin/open "$TARGET_APP"
 
-osascript -e 'display notification "已启动，请在弹窗中选择刘海或桌面位置" with title "Codex 红绿灯安装完成"'
+osascript -e 'display notification "已安装并启动，状态灯会自动关联本机 Codex。" with title "Codex 红绿灯安装完成"'
 exit 0

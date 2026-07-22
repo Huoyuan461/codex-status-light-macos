@@ -17,4 +17,4 @@ The optional floating light can be enabled from the menu. On displays with a cam
 
 ## One-click installation
 
-Double-click `一键安装Codex红绿灯.command`. It installs the app into `~/Applications`, clears quarantine attributes, applies a local ad-hoc signature, launches the app, and opens the position chooser on first launch.
+Double-click `一键安装Codex红绿灯.command`. It installs the app into `~/Applications`, clears quarantine attributes, applies a local ad-hoc signature, and launches the app. The app auto-detects `~/.codex` on first launch, so no manual folder selection is required unless you want to change it later.
