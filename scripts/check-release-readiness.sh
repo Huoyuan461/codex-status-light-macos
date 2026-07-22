@@ -2,6 +2,11 @@
 set -euo pipefail
 
 ROOT_DIR="${0:A:h:h}"
+BUILD_DIR="${ROOT_DIR}/Build"
+REPORT_PATH="${BUILD_DIR}/release-readiness-report.txt"
+
+mkdir -p "$BUILD_DIR"
+exec > >(tee "$REPORT_PATH")
 
 check_ok() {
   print "✅ $1"
@@ -23,6 +28,8 @@ check_file() {
 
 print "Codex Status Light release readiness"
 print "Root: $ROOT_DIR"
+print "Git commit: $(git -C "$ROOT_DIR" rev-parse --short HEAD)"
+print "Report: $REPORT_PATH"
 print ""
 
 check_file "App archive" "$ROOT_DIR/Build/CodexStatusLight.dsymfixed.xcarchive"
@@ -33,6 +40,8 @@ check_file "Website zip helper" "$ROOT_DIR/scripts/package-website-zip.sh"
 check_file "Website deploy helper" "$ROOT_DIR/scripts/prepare-website-deploy.sh"
 check_file "Release handoff helper" "$ROOT_DIR/scripts/package-release-handoff.sh"
 check_file "Release handoff command" "$ROOT_DIR/一键生成发布交接包.command"
+check_file "Website zip bundle" "$ROOT_DIR/Build/codexlight-website.zip"
+check_file "Release handoff bundle" "$ROOT_DIR/Build/codex-status-light-handoff"
 
 print ""
 print "App Store submission status:"
