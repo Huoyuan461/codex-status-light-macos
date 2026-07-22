@@ -2,6 +2,12 @@
 
 This is the shortest safe path from the current workspace to a submission-ready macOS app.
 
+Scope for the first submission:
+
+- Ship only the current first release.
+- Do not mix in second-version work until the first approval is done.
+- Keep the release assets, support site, and App Store metadata frozen until submission.
+
 1. Confirm the deployed HTTPS URLs.
    - Support: `https://codexlight.asia/support/`
    - Privacy: `https://codexlight.asia/privacy/`

@@ -11,6 +11,7 @@ App identity:
 - Category: `Developer Tools`
 - Price: `Free`
 - Minimum OS: `macOS 14.0`
+- Submission scope: first public version only; defer any second-version enhancements until after approval.
 
 Store listing:
 
