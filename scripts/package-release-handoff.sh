@@ -7,6 +7,7 @@ HANDFOFF_DIR="$BUILD_DIR/codex-status-light-handoff"
 HANDFOFF_ZIP="$BUILD_DIR/codex-status-light-handoff.zip"
 
 website_zip_script="$ROOT_DIR/scripts/package-website-zip.sh"
+summary_script="$ROOT_DIR/scripts/generate-release-summary.sh"
 
 required_files=(
   "$ROOT_DIR/website/index.html"
@@ -28,6 +29,8 @@ done
 mkdir -p "$HANDFOFF_DIR"
 
 "$website_zip_script" "$BUILD_DIR"
+zsh "$summary_script" "$BUILD_DIR/release-summary.json"
+cp "$BUILD_DIR/release-summary.json" "$HANDFOFF_DIR/"
 
 cp "$ROOT_DIR/商城上架/APP_STORE_METADATA.md" "$HANDFOFF_DIR/"
 cp "$ROOT_DIR/商城上架/APP_STORE_CONNECT_FILL_IN.md" "$HANDFOFF_DIR/"
@@ -38,9 +41,6 @@ cp "$ROOT_DIR/website/DEPLOYMENT.md" "$HANDFOFF_DIR/WEBSITE_DEPLOYMENT.md"
 if [[ -f "$ROOT_DIR/Build/release-readiness-report.txt" ]]; then
   cp "$ROOT_DIR/Build/release-readiness-report.txt" "$HANDFOFF_DIR/"
 fi
-
-rm -f "$HANDFOFF_ZIP"
-(cd "$BUILD_DIR" && zip -qr "$HANDFOFF_ZIP" "$(basename "$HANDFOFF_DIR")")
 
 cat > "$HANDFOFF_DIR/HANDOFF.md" <<EOF
 # Codex Status Light Release Handoff
@@ -56,6 +56,7 @@ Current verified status:
 - Release handoff zip ready at: $HANDFOFF_ZIP
 - App Store Connect upload still requires an authenticated session on the local machine.
 - Release readiness report is included if it was generated before this bundle.
+- A machine-readable summary is included at: $HANDFOFF_DIR/release-summary.json
 
 Next actions:
 
@@ -64,6 +65,9 @@ Next actions:
 3. Point DNS/hosting to the HTTPS site and confirm the support/privacy URLs.
 4. Submit for App Review after App Privacy is set to "Data Not Collected".
 EOF
+
+rm -f "$HANDFOFF_ZIP"
+(cd "$BUILD_DIR" && zip -qr "$HANDFOFF_ZIP" "$(basename "$HANDFOFF_DIR")")
 
 print "Prepared release handoff at: $HANDFOFF_DIR"
 print "Prepared release handoff zip at: $HANDFOFF_ZIP"
