@@ -15,8 +15,8 @@ Recommended structure after deploy:
 Two practical options:
 
 1. GitHub Pages
-   - Create a repository with the contents of `website/` at the root.
-   - Enable Pages from the default branch.
+   - Push the contents of `website/` to the GitHub Pages source you choose.
+   - If you later enable GitHub Actions publishing, you can reuse a workflow that copies `website/` into the Pages artifact.
    - The included `CNAME` file binds the site to `codexlight.asia`.
    - See `GITHUB_PAGES_SETUP.md` for the DNS records GitHub Pages documents for apex domains.
    - Use the Pages URL as the App Store support and privacy URLs.
