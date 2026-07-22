@@ -201,7 +201,7 @@ final class CodexSessionMonitorTests: XCTestCase {
         defer { sqlite3_finalize(statement) }
 
         for (index, value) in bindings.enumerated() {
-            value.withCString { cString in
+            let _: Void = value.withCString { cString in
                 sqlite3_bind_text(statement, Int32(index + 1), cString, -1, transientDestructor())
             }
         }
