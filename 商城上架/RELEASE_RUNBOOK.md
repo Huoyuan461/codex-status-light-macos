@@ -39,3 +39,4 @@ This is the shortest safe path from the current workspace to a submission-ready 
 Optional handoff package:
 
 - Run `scripts/package-release-handoff.sh` to generate a single folder with the website bundle and all release documents.
+- Or double-click `一键生成发布交接包.command` to do the same and open `Build/` automatically.
