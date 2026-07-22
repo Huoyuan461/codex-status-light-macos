@@ -1,7 +1,7 @@
 # Mac App Store 上架清单
 
 - [x] 开启 App Sandbox
-- [x] 仅申请用户选择文件夹的只读权限
+- [x] 仅申请本机 Codex 状态的只读访问，自动识别 `~/.codex`，失败时才允许手动选择
 - [x] 使用 security-scoped bookmark 保存授权
 - [x] 移除外部进程命令调用
 - [x] 设置开发者工具分类
