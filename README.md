@@ -22,3 +22,7 @@ Double-click `一键安装Codex红绿灯.command`. It installs the app into `~/A
 ## Release handoff package
 
 Double-click `一键生成发布交接包.command` to create a full release handoff bundle in `Build/` and open the folder automatically.
+
+## Release readiness check
+
+Double-click `一键检查发布状态.command` to print a quick release readiness report for the current workspace.
