@@ -14,11 +14,14 @@ struct StatusResolver {
         let environmentIsHealthy = processIsRunning && networkIsAvailable
 
         guard let snapshot else {
+            if !environmentIsHealthy {
+                if previousState == .completed {
+                    return .disconnected
+                }
+                return previousState == .running ? .disconnected : .idle
+            }
             if previousState == .completed {
                 return .completed
-            }
-            if !environmentIsHealthy {
-                return previousState == .running ? .disconnected : .idle
             }
             return .running
         }
@@ -29,21 +32,26 @@ struct StatusResolver {
 
         let silence = now.timeIntervalSince(snapshot.lastActivityAt)
         if !environmentIsHealthy {
-            if previousState == .completed {
-                return .completed
-            }
             return previousState == .running || snapshot.eventState == .active ? .disconnected : .idle
-        }
-
-        if previousState == .completed, snapshot.eventState != .active {
-            return .completed
         }
 
         switch snapshot.eventState {
         case .active:
+            if silence > timeout {
+                return .disconnected
+            }
             return .running
         case .unknown:
-            if silence > timeout, previousState == .running {
+            if silence > timeout {
+                if previousState == .running {
+                    return .disconnected
+                }
+                if previousState == .completed {
+                    return .completed
+                }
+                return .idle
+            }
+            if previousState == .completed {
                 return .running
             }
             return .running

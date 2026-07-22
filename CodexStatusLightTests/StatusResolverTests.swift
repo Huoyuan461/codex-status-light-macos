@@ -23,7 +23,7 @@ final class StatusResolverTests: XCTestCase {
     }
 
     func testSilentUnknownSessionStillShowsRunning() {
-        XCTAssertEqual(resolver.resolve(processIsRunning: true, networkIsAvailable: true, snapshot: snapshot(.unknown, age: 120), previousState: .idle, now: now), .running)
+        XCTAssertEqual(resolver.resolve(processIsRunning: true, networkIsAvailable: true, snapshot: snapshot(.unknown, age: 120), previousState: .idle, now: now), .idle)
     }
 
     func testCompletedTurnWinsAfterEarlierActivity() {
@@ -60,7 +60,11 @@ final class StatusResolverTests: XCTestCase {
     }
 
     func testStaleActiveSessionIsDisconnected() {
-        XCTAssertEqual(resolver.resolve(processIsRunning: true, networkIsAvailable: true, snapshot: snapshot(.active, age: 91), previousState: .running, now: now), .running)
+        XCTAssertEqual(resolver.resolve(processIsRunning: true, networkIsAvailable: true, snapshot: snapshot(.active, age: 91), previousState: .running, now: now), .disconnected)
+    }
+
+    func testRecentUnknownSessionAfterCompletionRecoversToRunning() {
+        XCTAssertEqual(resolver.resolve(processIsRunning: true, networkIsAvailable: true, snapshot: snapshot(.unknown, age: 2), previousState: .completed, now: now), .running)
     }
 
     private func snapshot(_ state: SessionEventState, age: TimeInterval) -> CodexSessionSnapshot {
