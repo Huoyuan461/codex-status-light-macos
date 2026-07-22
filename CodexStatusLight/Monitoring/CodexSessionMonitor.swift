@@ -147,7 +147,7 @@ actor CodexSessionMonitor {
             return (.unknown, lastDate)
         }
 
-        if latestInterestingTurn.isCompleted {
+        if latestInterestingTurn.completedWins {
             return (.finalResponse, latestInterestingTurn.lastDate)
         }
         if latestInterestingTurn.isActive {
@@ -172,13 +172,22 @@ actor CodexSessionMonitor {
         var lastDate: Date
         var isActive: Bool
         var isCompleted: Bool
+        var lastActiveIndex: Int?
+        var lastCompletedIndex: Int?
+
+        var completedWins: Bool {
+            guard isCompleted else { return false }
+            guard let lastCompletedIndex else { return true }
+            guard let lastActiveIndex else { return true }
+            return lastCompletedIndex >= lastActiveIndex
+        }
     }
 
     private func summarizeTurns(_ records: [RolloutRecord]) -> [TurnSummary] {
         var summaries: [String: TurnSummary] = [:]
         var currentTurnID = ""
 
-        for record in records {
+        for (index, record) in records.enumerated() {
             if record.eventType == "turn_context" || record.eventType == "task_started" {
                 currentTurnID = record.turnID.isEmpty ? currentTurnID : record.turnID
             } else if currentTurnID.isEmpty, !record.turnID.isEmpty {
@@ -195,7 +204,9 @@ actor CodexSessionMonitor {
                     firstDate: date,
                     lastDate: date,
                     isActive: false,
-                    isCompleted: false
+                    isCompleted: false,
+                    lastActiveIndex: nil,
+                    lastCompletedIndex: nil
                 )
             }
 
@@ -206,10 +217,12 @@ actor CodexSessionMonitor {
             if isFinalResponseEvent(eventType: record.eventType, payload: record.payload, payloadType: record.payloadType, phase: record.phase)
                 || (record.eventType == "event_msg" && record.payloadType == "task_complete") {
                 summary.isCompleted = true
+                summary.lastCompletedIndex = index
             }
 
             if isActivityEvent(eventType: record.eventType, payload: record.payload, payloadType: record.payloadType, phase: record.phase) {
                 summary.isActive = true
+                summary.lastActiveIndex = index
             }
 
             summaries[turnID] = summary
