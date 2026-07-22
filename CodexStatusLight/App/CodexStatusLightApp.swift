@@ -9,10 +9,6 @@ struct CodexStatusLightApp: App {
         let model = CodexStatusModel()
         _model = State(initialValue: model)
         appDelegate.model = model
-        Task { @MainActor in
-            try? await Task.sleep(for: .milliseconds(250))
-            model.beginLaunchAnimation()
-        }
     }
 
     var body: some Scene {
@@ -20,9 +16,6 @@ struct CodexStatusLightApp: App {
             StatusPanelView(model: model)
         } label: {
             BrandBadgeView()
-                .onAppear {
-                    model.beginLaunchAnimation()
-                }
                 .accessibilityLabel("Codex Status Light")
         }
         .menuBarExtraStyle(.window)
