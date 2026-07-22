@@ -12,12 +12,13 @@ This is the shortest safe path from the current workspace to a submission-ready 
    - Category: `Developer Tools`
 
 3. Open the Xcode archive.
-   - Use the existing archive in `Build/CodexStatusLight.xcarchive`.
-   - Run `Validate App`.
+   - Use `Build/CodexStatusLight.dsymfixed.xcarchive` for the latest verified Release build.
+   - Run `Validate App` from Xcode Organizer if you want a fresh manual confirmation.
 
 4. Upload the build.
    - Use Xcode Organizer upload flow.
    - Wait for App Store Connect processing to finish.
+   - If App Store Connect reports no authenticated account, sign in again and retry.
 
 5. Fill the store listing.
    - Support URL

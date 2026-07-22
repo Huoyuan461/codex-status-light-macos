@@ -11,6 +11,7 @@
 - [ ] 发布 HTTPS 支持页面和隐私政策页面（`codexlight.asia`，待 DNS/托管生效）
 - [ ] 在 App Store Connect 创建 macOS App，Bundle ID 为 `com.huoyuan.CodexStatusLight`
 - [x] 创建 App Store 图标和至少三张 macOS 截图（草稿版）
-- [ ] 在 Xcode Archive 中执行 Validate App
-- [ ] 上传构建并填写 App Privacy：Data Not Collected
+- [x] 在 Xcode Archive 中执行 Validate App
+- [x] 生成 Release archive 并确认 dSYM 正常产出
+- [ ] 上传最新构建并填写 App Privacy：Data Not Collected（当前 App Store Connect 会话需重新认证）
 - [ ] 选择价格与销售地区并提交审核
