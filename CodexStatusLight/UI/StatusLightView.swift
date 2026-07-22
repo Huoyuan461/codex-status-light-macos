@@ -5,7 +5,7 @@ struct StatusLightView: View {
     var size: CGFloat = 18
     var animated = true
     var startupPhase: Int = 4
-    @State private var flashing = false
+    @State private var blinkPhase = false
 
     var body: some View {
         HStack(spacing: size * 0.36) {
@@ -47,9 +47,8 @@ struct StatusLightView: View {
                         .blur(radius: 0.4)
                 )
         }
-        .onAppear { flashing = state != .idle }
-        .onChange(of: state) { _, newState in
-            flashing = newState != .idle
+        .task(id: blinkTaskID) {
+            await runBlinkLoop()
         }
         .animation(.easeOut(duration: 0.24), value: startupPhase)
         .accessibilityLabel(state.title)
@@ -65,9 +64,9 @@ struct StatusLightView: View {
             guard !isActive else {
                 switch state {
                 case .running:
-                    return flashing ? 0.96 : 0.42
+                    return blinkPhase ? 0.96 : 0.42
                 case .disconnected, .completed:
-                    return flashing ? 0.96 : 0.34
+                    return blinkPhase ? 0.96 : 0.34
                 case .idle:
                     return 0.18
                 }
@@ -80,9 +79,9 @@ struct StatusLightView: View {
             guard state != .idle, isActive else { return dimOpacity }
             switch state {
             case .running:
-                return flashing ? 0.96 : 0.42
+                return blinkPhase ? 0.96 : 0.42
             case .disconnected, .completed:
-                return flashing ? 0.96 : 0.34
+                return blinkPhase ? 0.96 : 0.34
             case .idle:
                 return 0
             }
@@ -98,8 +97,39 @@ struct StatusLightView: View {
                 isActive && animated
                     ? .easeInOut(duration: 0.48).repeatForever(autoreverses: true)
                     : .default,
-                value: flashing
+                value: blinkPhase
             )
             .animation(.easeOut(duration: 0.30), value: startupPhase)
+    }
+
+    private var blinkTaskID: String {
+        "\(state.rawValue)-\(startupPhase)"
+    }
+
+    private func blinkInterval(for state: CodexActivityState) -> Duration {
+        switch state {
+        case .running:
+            return .milliseconds(420)
+        case .disconnected:
+            return .milliseconds(520)
+        case .completed:
+            return .milliseconds(560)
+        case .idle:
+            return .milliseconds(0)
+        }
+    }
+
+    private func runBlinkLoop() async {
+        blinkPhase = false
+
+        guard animated, startupPhase >= 4, state != .idle else { return }
+
+        let interval = blinkInterval(for: state)
+        while !Task.isCancelled {
+            withAnimation(.easeInOut(duration: 0.22)) {
+                blinkPhase.toggle()
+            }
+            try? await Task.sleep(for: interval)
+        }
     }
 }
