@@ -47,7 +47,11 @@ final class StatusResolverTests: XCTestCase {
         XCTAssertEqual(resolver.resolve(processIsRunning: true, networkIsAvailable: true, snapshot: nil, previousState: .completed, now: now), .completed)
     }
 
-    func testCompletedStatePersistsWhenEnvironmentDrops() {
+    func testCompletedStatePersistsWhenEnvironmentDropsAfterCompletion() {
+        XCTAssertEqual(resolver.resolve(processIsRunning: false, networkIsAvailable: false, snapshot: nil, previousState: .completed, now: now), .completed)
+    }
+
+    func testCompletedSnapshotStillWinsWhenEnvironmentDrops() {
         XCTAssertEqual(resolver.resolve(processIsRunning: false, networkIsAvailable: false, snapshot: snapshot(.finalResponse, age: 120), previousState: .completed, now: now), .completed)
     }
 
