@@ -13,6 +13,7 @@ required_files=(
   "$ROOT_DIR/website/index.html"
   "$ROOT_DIR/website/support/index.html"
   "$ROOT_DIR/website/privacy/index.html"
+  "$ROOT_DIR/首发上线说明.md"
   "$ROOT_DIR/商城上架/APP_STORE_METADATA.md"
   "$ROOT_DIR/商城上架/APP_STORE_CONNECT_FILL_IN.md"
   "$ROOT_DIR/商城上架/APP_STORE_RELEASE_CHECKLIST.md"
@@ -26,6 +27,7 @@ for file in "${required_files[@]}"; do
   fi
 done
 
+rm -rf "$HANDFOFF_DIR"
 mkdir -p "$HANDFOFF_DIR"
 
 "$website_zip_script" "$BUILD_DIR"
@@ -36,6 +38,7 @@ cp "$ROOT_DIR/商城上架/APP_STORE_METADATA.md" "$HANDFOFF_DIR/"
 cp "$ROOT_DIR/商城上架/APP_STORE_CONNECT_FILL_IN.md" "$HANDFOFF_DIR/"
 cp "$ROOT_DIR/商城上架/APP_STORE_RELEASE_CHECKLIST.md" "$HANDFOFF_DIR/"
 cp "$ROOT_DIR/商城上架/RELEASE_RUNBOOK.md" "$HANDFOFF_DIR/"
+cp "$ROOT_DIR/首发上线说明.md" "$HANDFOFF_DIR/FIRST_RELEASE_GUIDE.md"
 cp "$ROOT_DIR/website/README.md" "$HANDFOFF_DIR/WEBSITE_README.md"
 cp "$ROOT_DIR/website/DEPLOYMENT.md" "$HANDFOFF_DIR/WEBSITE_DEPLOYMENT.md"
 if [[ -f "$ROOT_DIR/Build/release-readiness-report.txt" ]]; then
