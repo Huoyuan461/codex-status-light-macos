@@ -3,8 +3,8 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Codex Status Light 支持</title>
-    <meta name="description" content="Codex Status Light 的支持与使用说明。" />
+    <title>Codex Status Light Support</title>
+    <meta name="description" content="Support, setup, and troubleshooting for Codex Status Light." />
     <style>
       :root {
         color-scheme: light;
@@ -61,27 +61,30 @@
   <body>
     <main>
       <div class="card">
-        <h1>Codex Status Light 支持</h1>
-        <p>Codex Status Light 是一个只读的本机状态监控工具，用于显示最近活跃的 Codex 会话状态。</p>
+        <h1>Codex Status Light Support</h1>
+        <p>
+          Codex Status Light is a lightweight, read-only macOS utility that shows the live status of your most recent local Codex session.
+        </p>
 
-        <h2>使用方法</h2>
+        <h2>Getting Started</h2>
         <ul>
-          <li>首次启动时应用会优先自动关联本机的 <code>~/.codex</code>；如果自动检测失败，再手动选择 <code>.codex</code> 文件夹并授予只读权限。</li>
-          <li>选择“刘海旁”“桌面任意位置”或“仅菜单栏”。</li>
-          <li>红灯表示异常中断，黄灯表示正在运行，绿灯表示任务已完成。</li>
+          <li>On first launch, the app tries to auto-detect your local <code>~/.codex</code> folder.</li>
+          <li>If auto-detection fails, choose the <code>.codex</code> folder manually and grant read-only access.</li>
+          <li>Pick a display mode: notch, floating desktop, or menu bar only.</li>
+          <li>Red means disconnected, yellow means running, and green means completed or ready for your next prompt.</li>
         </ul>
 
-        <h2>常见问题</h2>
+        <h2>Troubleshooting</h2>
         <ul>
-          <li>如果没有显示状态，请先确认 Codex 正在运行；仍未显示时可重新打开应用并重新授权 <code>.codex</code> 文件夹。</li>
-          <li>如果找不到 <code>.codex</code>，请在文件选择窗口按 <code>Command + Shift + .</code> 显示隐藏文件。</li>
-          <li>如果悬浮灯位置不合适，可以切换到桌面模式后直接拖动。</li>
+          <li>If no status appears, make sure Codex is running, then reopen the app or reauthorize the <code>.codex</code> folder.</li>
+          <li>If you do not see <code>.codex</code>, press <code>Command + Shift + .</code> in the file picker to reveal hidden files.</li>
+          <li>If the floating light is in the wrong place, switch to desktop mode and drag it anywhere you like.</li>
         </ul>
 
-        <h2>联系支持</h2>
+        <h2>Contact Support</h2>
         <a class="email" href="mailto:huoyuan461@qq.com">huoyuan461@qq.com</a>
 
-        <p class="note">本页面可直接部署到任意 HTTPS 静态站点，并在 App Store Connect 中填写为支持 URL。</p>
+        <p class="note">This page is ready to publish over HTTPS and can be used directly as the App Store Connect support URL.</p>
       </div>
     </main>
   </body>
