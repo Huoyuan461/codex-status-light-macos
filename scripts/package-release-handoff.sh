@@ -4,6 +4,7 @@ set -euo pipefail
 ROOT_DIR="${0:A:h:h}"
 BUILD_DIR="${1:-$ROOT_DIR/Build}"
 HANDFOFF_DIR="$BUILD_DIR/codex-status-light-handoff"
+HANDFOFF_ZIP="$BUILD_DIR/codex-status-light-handoff.zip"
 
 website_zip_script="$ROOT_DIR/scripts/package-website-zip.sh"
 
@@ -38,6 +39,9 @@ if [[ -f "$ROOT_DIR/Build/release-readiness-report.txt" ]]; then
   cp "$ROOT_DIR/Build/release-readiness-report.txt" "$HANDFOFF_DIR/"
 fi
 
+rm -f "$HANDFOFF_ZIP"
+(cd "$BUILD_DIR" && zip -qr "$HANDFOFF_ZIP" "$(basename "$HANDFOFF_DIR")")
+
 cat > "$HANDFOFF_DIR/HANDOFF.md" <<EOF
 # Codex Status Light Release Handoff
 
@@ -49,6 +53,7 @@ Current verified status:
 - App archive and dSYM generation verified.
 - Website support and privacy pages prepared for HTTPS hosting.
 - Website zip bundle ready at: $BUILD_DIR/codexlight-website.zip
+- Release handoff zip ready at: $HANDFOFF_ZIP
 - App Store Connect upload still requires an authenticated session on the local machine.
 - Release readiness report is included if it was generated before this bundle.
 
@@ -61,3 +66,4 @@ Next actions:
 EOF
 
 print "Prepared release handoff at: $HANDFOFF_DIR"
+print "Prepared release handoff zip at: $HANDFOFF_ZIP"
