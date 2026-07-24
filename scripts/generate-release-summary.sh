@@ -25,8 +25,8 @@ cat > "$OUTPUT_PATH" <<EOF
     "Set App Privacy to Data Not Collected",
     "Finish price/region selection and submit for review"
   ],
-  "support_url": "https://codexlight.asia/support/",
-  "privacy_url": "https://codexlight.asia/privacy/",
+  "support_url": "https://github.com/Huoyuan461/codex-status-light-macos/blob/main/SUPPORT.md",
+  "privacy_url": "https://github.com/Huoyuan461/codex-status-light-macos/blob/main/PRIVACY.md",
   "release_url": "https://codexlight.asia/release/"
 }
 EOF

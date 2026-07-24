@@ -17,8 +17,8 @@ Store listing:
 
 - Description: see `APP_STORE_METADATA.md`
 - Keywords: `Codex,开发工具,状态监控,菜单栏,效率,编程`
-- Support URL: `https://codexlight.asia/support/`
-- Privacy Policy URL: `https://codexlight.asia/privacy/`
+- Support URL: `https://github.com/Huoyuan461/codex-status-light-macos/blob/main/SUPPORT.md`
+- Privacy Policy URL: `https://github.com/Huoyuan461/codex-status-light-macos/blob/main/PRIVACY.md`
 
 Contact:
 

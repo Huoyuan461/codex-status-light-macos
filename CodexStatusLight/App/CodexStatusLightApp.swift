@@ -19,7 +19,14 @@ struct CodexStatusLightApp: App {
                 .accessibilityLabel("Codex Status Light")
         }
         .menuBarExtraStyle(.window)
+
+        Window("Codex Status Light", id: Self.mainWindowID) {
+            MainWindowView(model: model)
+        }
+        .defaultSize(width: 420, height: 560)
     }
+
+    static let mainWindowID = "main-window"
 }
 
 private struct BrandBadgeView: View {
@@ -59,5 +66,28 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func appDidLaunch() {
         model?.beginLaunchAnimation()
+    }
+}
+
+private struct MainWindowView: View {
+    @Bindable var model: CodexStatusModel
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack {
+                StatusLightView(state: model.state, size: 12, animated: false)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Codex Status Light").font(.title3.bold())
+                    Text("主窗口可从 Window 菜单重新打开").font(.caption).foregroundStyle(.secondary)
+                }
+                Spacer()
+                Button("立即刷新") { model.refreshNow() }
+            }
+
+            Divider()
+            StatusPanelView(model: model)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        }
+        .padding(20)
     }
 }

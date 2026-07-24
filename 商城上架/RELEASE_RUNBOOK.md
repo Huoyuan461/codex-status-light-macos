@@ -9,8 +9,8 @@ Scope for the first submission:
 - Keep the release assets, support site, and App Store metadata frozen until submission.
 
 1. Confirm the deployed HTTPS URLs.
-   - Support: `https://codexlight.asia/support/`
-   - Privacy: `https://codexlight.asia/privacy/`
+   - Support: `https://github.com/Huoyuan461/codex-status-light-macos/blob/main/SUPPORT.md`
+   - Privacy: `https://github.com/Huoyuan461/codex-status-light-macos/blob/main/PRIVACY.md`
 
 2. Create the App Store Connect app record.
    - Bundle ID: `com.huoyuan.CodexStatusLight`

@@ -23,3 +23,8 @@ Codex,开发工具,状态监控,菜单栏,效率,编程
 ## 审核备注
 
 应用会在首次启动时优先自动识别本机 `~/.codex` 文件夹，只有在自动识别失败时才会请求用户手动选择。该授权仅用于只读分析本机 Codex 会话 JSONL 和 SQLite 状态文件。审核时如未安装 Codex，可以验证应用的自动识别、显示位置和空闲状态；完整状态变化需要本机 Codex 产生会话数据。
+
+Support URL and Privacy Policy URL use the GitHub-hosted pages in the repository for review:
+
+- Support: `https://github.com/Huoyuan461/codex-status-light-macos/blob/main/SUPPORT.md`
+- Privacy: `https://github.com/Huoyuan461/codex-status-light-macos/blob/main/PRIVACY.md`
